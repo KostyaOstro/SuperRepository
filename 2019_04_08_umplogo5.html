@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <title>Document</title>
+
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var s = 20;
+        var maxU = 60;
+        var w = s * maxU;
+        var h = s * maxU;
+        var uniforms;
+
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+        ctx.fillRect(
+            0,
+            0,
+            w,
+            h
+        )
+
+
+
+        var dump = [
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        ];
+        var l = [];
+        l[0] = [
+            0, 0, 0, 0, 1,
+            0, 1, 1, 1, 1,
+            0, 1, 0, 0, 1,
+            0, 1, 0, 0, 1,
+            0, 1, 0, 0, 1,
+            0, 1, 1, 1, 1,
+            0, 0, 0, 0, 0,
+        ];
+
+        l[1] = [
+            0, 0, 0, 0, 0, 0,
+            0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0,
+            0, 1, 1, 1, 1, 0,
+            0, 0, 0, 0, 0, 0,
+        ];
+        l[2] = [
+            0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 0,
+            1, 0, 1, 0, 1, 0,
+            1, 0, 1, 0, 1, 0,
+            1, 0, 1, 0, 1, 0,
+            1, 0, 1, 0, 1, 0,
+            0, 0, 0, 0, 0, 0,
+        ];
+        l[3] = [
+            0, 0, 0, 0, 0,
+            1, 1, 1, 1, 0,
+            1, 0, 0, 1, 0,
+            1, 0, 0, 1, 0,
+            1, 0, 0, 1, 0,
+            1, 1, 1, 1, 0,
+            1, 0, 0, 0, 0,
+        ];
+
+        var letters = {
+            x: [],
+            y: [],
+            vx: [],
+            vy: [],
+            a: [],
+            trigger: [],
+            draw() {
+                for (let i = 0; i < 30; i++) {
+                    if (time == 0) {
+                        let offset = 20;
+                        this.x[i] = random(offset, maxU - offset - 6) * s;
+                        this.y[i] = random(offset, maxU - offset - 7) * s;
+                        this.a[i] = random(0, Math.PI * 2);
+                        this.vx[i] = Math.cos(this.a[i]);
+                        this.vy[i] = Math.sin(this.a[i]);
+                        this.trigger[i] = random(2, 4);
+                    }
+                    this.x[i] -= this.vx[i];
+                    this.y[i] -= this.vy[i];
+
+                    if (time < this.trigger[i]) {
+                        drawLetter(
+                            i,
+                            this.x[i],
+                            this.y[i],
+                            this.a[i]
+                        )
+                    }
+
+                }
+            }
+        }
+
+
+
+
+
+        function drawLetter(ii, xx, yy, aa) {
+
+            ii = ii % l.length;
+            let ww = l[ii].length / 7;
+            ctx.fillStyle = "white";
+            let lw = Math.round(s / 3)
+            ctx.fillRect(
+                Math.round(xx) - Math.cos(aa) * lw,
+                Math.round(yy) - Math.sin(aa) * lw,
+                ww * s,
+                7 * s
+            )
+
+            ctx.fillStyle = "black";
+            for (let i = 0; i < l[ii].length; i++) {
+                let x = i % ww;
+                let y = Math.floor(i / ww);
+                if (l[ii][i] == 0) {
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(
+                        x * s + Math.round(xx),
+                        y * s + Math.round(yy),
+                        s,
+                        s
+                    );
+                } else {
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(
+                        x * s + Math.round(xx),
+                        y * s + Math.round(yy),
+                        s,
+                        s
+                    );
+                }
+
+            }
+
+        }
+        animate();
+
+        function animate() {
+            letters.draw();
+            if (time < 3) {
+                requestAnimationFrame(animate);
+            }
+
+            time += .01;
+        }
+
+        function geometries(x, y) {
+            let seed = rSeed(6)
+            switch (seed) {
+                case 4:
+
+
+                    ctx.beginPath();
+                    ctx.arc(
+                        x * s + s / 2,
+                        y * s + s / 2,
+                        s / 2,
+                        0,
+                        Math.PI * 2
+                    )
+                    ctx.fill()
+                    break;
+                case 5:
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        x * s, y * s
+                    )
+                    ctx.lineTo(
+                        x * s, y * s + s
+                    )
+                    ctx.lineTo(
+                        x * s + s, y * s + s
+                    )
+                    ctx.closePath()
+                    ctx.fill()
+                    break;
+                case 6:
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        x * s, y * s
+                    )
+                    ctx.lineTo(
+                        x * s + s, y * s
+                    )
+                    ctx.lineTo(
+                        x * s, y * s + s
+                    )
+                    ctx.closePath()
+                    ctx.fill()
+                    break;
+                default:
+                    ctx.fillRect(
+                        x * s,
+                        y * s,
+                        s,
+                        s
+                    )
+            }
+        }
+    </script>
+</body>
+
+</html>
