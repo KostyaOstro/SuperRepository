@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <title>Document</title>
+    <script id='fragmentShader' type='x-shader/x-fragment'>
+        uniform float time;
+        uniform sampler2D texture1;
+        varying vec2 mv;
+
+        void main(){
+            vec4 img = texture2D(texture1, mv);
+            gl_FragColor = img;
+        }
+
+    </script>
+    <script id='vertexShader' type='x-shader/x-vertex'>
+        uniform float time;
+        uniform sampler2D texture1;
+        varying vec2 mv;
+
+        void main(){
+            mv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        }
+
+    </script>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var step = 32;
+        var cw = step * 22;
+        var ch = step * 7;
+        var w = h = 1024;
+        var uniforms;
+        var copies = 64;
+        var mcanvas;
+        var mctx;
+        var tex;
+        var cubes;
+        var canvas = document.createElement("canvas");
+        var scene, camera, renderer;
+        canvas.width = cw;
+        canvas.height = ch;
+        var ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+
+        var img = new Image();
+        img.src = '/images/dumplogo.png';
+
+        img.onload = function () {
+            let iw = img.width;
+            let ih = img.height;
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                iw,
+                ih,
+                0,
+                0,
+                cw,
+                cw / iw * ih
+            );
+            mcanvas = document.createElement("canvas");
+            mcanvas.width = step * 24;
+            mcanvas.height = step * 24;
+            mctx = mcanvas.getContext("2d");
+            document.body.appendChild(mcanvas);
+            mctx.fillStyle = "white";
+            var u = 4;
+            mctx.fillRect(
+                0,
+                0,
+                step * u,
+                step * u
+            )
+            for (let i = 0; i < copies; i++) {
+
+                let s = Math.pow(3, rSeed(3));
+                mctx.drawImage(
+                    canvas,
+                    rSeed(19) * step,
+                    rSeed(4) * step,
+                    step * 3,
+                    step * 3,
+                    rSeed((u - 2)* s) * step / s,
+                    rSeed((u - 2) * s) * step / s,
+                    step * 3 / s,
+                    step * 3 / s
+                )
+
+            }
+            init3D();
+        }
+
+
+
+        function init3D() {
+
+            scene = new THREE.Scene();
+            camera = new THREE.OrthographicCamera(-w / 6, w / 6, h / 6, -h / 6, .01, 2000);
+            camera.position.z = 40;
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(w, h);
+            document.body.appendChild(renderer.domElement);
+            var s = 300;
+            var geomtery = new THREE.PlaneGeometry(s, s, 1, 1);
+
+
+
+            tex = new THREE.CanvasTexture(mcanvas);
+
+            var material = new THREE.MeshBasicMaterial({
+                map: tex,
+
+            })
+            cube = new THREE.Mesh(geomtery, material);
+            scene.add(cube);
+           
+
+
+
+            animate()
+        }
+
+        function animate() {
+            // for (let i = 0; i < copies; i++) {
+            //     cube[i].rotation.y = Math.cos(i / copies * 7 + time) * 3.14;
+            // }
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time += .001;
+        }
+    </script>
+</body>
+
+</html>

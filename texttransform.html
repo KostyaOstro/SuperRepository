@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Titillium+Web:900" rel="stylesheet">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        font-family: 'Titillium Web', sans-serif;
+    }
+</style>
+<script>
+    var ctx, canvas;
+    var fctx, fCanvas;
+    var w = h = 800;
+    var miniCanvas = [];
+    var mctx = [];
+    var x, y;
+    var time = 0;
+    var gsc, bgColor;
+    
+    window.onload = function () {
+        var gsc = rSeed(5);
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        //document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "black";
+
+
+
+
+        fCanvas = document.createElement("canvas");
+        fCanvas.width = w;
+        fCanvas.height = h;
+        document.body.appendChild(fCanvas);
+        fctx = fCanvas.getContext("2d");
+        fctx.font = h/20 + "px Titillium Web";
+        fctx.textAlign='center';
+        text.init();
+
+        animate();
+    }
+
+
+
+    var text = {
+        string: "RAGE",
+        x: w / 2,
+        y: h / 2,
+        //skewX:,
+        fontSize: h / 4,
+        clips: 50,
+        top: h / 4,
+        bottom: h * 3 / 4,
+        init() {
+            ctx.font = this.fontSize + "px Titillium Web";
+            ctx.textAlign = 'center';
+            ctx.transform(
+                1, //Horizontal scaling. A value of 1 results in no scaling.
+                0.25, //Vertical skewing. 
+                0, //Horizontal skewing. 
+                1, //Vertical scaling. A value of 1 results in no scaling. 
+                0, //Horizontal translation (moving). 
+                -h / 8 //Vertical translation (moving).
+            );
+            ctx.fillText(this.string, this.x, this.y);
+            for (let i = 0; i < this.clips; i++) {
+                initMiniCanvas(i, w, h / 5); // this.clips);
+                var avH = this.bottom - this.top;
+                var sy = this.top + avH / this.clips * i;
+                var sx = dx = 0;
+                var sw = dw = w;
+                var sh = dh = h / 5 //avH / this.clips;
+                var dy = 0;
+
+                mctx[i].drawImage(
+                    canvas,
+                    sx,
+                    sy,
+                    sw,
+                    sh,
+                    dx,
+                    dy,
+                    dw,
+                    dh
+                )
+                mctx[i].fillStyle = 'red';
+                mctx[i].beginPath();
+                let tx = random(0, w);
+                let tw = random(w / 30, w / 20);
+                let th = random(h / 50, h / 40);
+                mctx[i].moveTo(tx, 0);
+                mctx[i].lineTo(tx + tw, th);
+                mctx[i].lineTo(tx + tw, 0);
+                mctx[i].closePath();
+                mctx[i].fill();
+
+            }
+        },
+        draw() {
+                
+            fctx.fillStyle='black';
+            for (let i = 0; i < this.clips; i++) {
+                var avH = this.bottom - this.top;
+                var k = Math.sin(time / 50 + i / this.clips);
+                var k2 = Math.cos(time / 50 + i / 9) * w / 8;
+                var y = h / this.clips * i + k2 +h / 10;
+                fctx.drawImage(
+                    miniCanvas[i],
+                    0,
+                    y
+                )
+                fctx.font = 12 + "px Arial";
+                let ix = w / this.clips * i + w / 4;
+                fctx.fillText(Math.round(y * 100) / 100, w / 4, y + 10)
+            }
+
+            for (let i = 0; i < 20; i++) {
+                var txx=-time%w+w/4*i;
+                fctx.font = h/30 + "px Titillium Web";
+                //if(tyy<0){tyy+=h};
+                fctx.strokeText("INHALE",txx,h*9/10);
+                fctx.fillText("EXHALE",txx+w/8,h*9/10);
+
+                fctx.strokeText("INHALE",txx,h/10);
+                fctx.fillText("EXHALE",txx+w/8,h/10)
+            }
+            
+           
+        }
+    }
+
+
+    function draw() {
+        text.draw()
+    }
+
+
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        // fctx.fillStyle="rgba(255,255,255,0.01)";
+        fctx.clearRect(0, 0, w, h)
+        //fctx.clearRect(0, 0, w, h)
+        //fctx.clearRect(0, 0, w, h)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+
+    document.addEventListener('mousemove', mmm);
+
+    function mmm(e) {
+        e = event || window.event;
+        x = event.clientX;
+        y = event.clientY;
+        if (x > w) {
+            x = w
+        };
+        if (y > h) {
+            y = h
+        };
+        //console.log(x, y)
+    };
+
+    function initMiniCanvas(i, w, h) {
+        miniCanvas[i] = document.createElement("canvas");
+        miniCanvas[i].width = w;
+        miniCanvas[i].height = h;
+        //document.body.appendChild(miniCanvas[i]);
+        mctx[i] = miniCanvas[i].getContext("2d");
+    }
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    }
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+</script>
+
+<body>
+    *
+</body>
+
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <input id="tex" type="text" size="40">
+    <input type='button' id="btn" value='dnld'>
+    <input type='file' id="dwn" value='file'>
+    <script>
+        var w = h = 1024;
+        var canvas, ctx;
+        var tex = document.getElementById('tex');
+        var btn = document.getElementById('btn');
+        var dwn = document.getElementById('dwn');
+
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.height = h;
+            canvas.width = w;
+            ctx = canvas.getContext("2d");
+            document.body.appendChild(canvas);
+
+        };
+        dwn.oninput = function (){
+            var img = new Image();
+            img.src = dwn.value;
+            ctx.drawImage(img, 0, 0)
+        }
+
+        tex.onkeypress = function (e) {
+            if (e.keyCode == 13) {
+                console.log(tex.value);
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = "black";
+                ctx.font = h / 20 + 'px arial';
+                ctx.textAlign = "center";
+                ctx.fillText(
+                    tex.value,
+                    w / 2,
+                    h / 2
+                )
+            }
+        }
+        
+
+        
+    </script>
+
+
+</body>
+
+</html>

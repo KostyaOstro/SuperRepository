@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+</head>
+<script>
+    var time = 0;
+    var canvas, ctx;
+    var canvas2, ctx2;
+    var w = h = 1024;
+    var gsc, bg;
+    var mw = mh = 64;
+    var size = w / mw;
+    var mcanvas = [];
+    var mctx = [];
+    var string = 'ЖЩЯЙФЫЮ';
+    var loader = "LOVE & HATE";
+    var data = [];
+    var map = [];
+    var max;
+    var l = l2 = 0;
+    var seed = [];
+    var strokeColor,fillColor;
+    window.onload = function () {
+        gsc = rSeed(5);
+        bg = rColor(gsc);
+        strokeColor = rColor(gsc);
+        fillColor = rColor(gsc);
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+        ctx.fillStyle=bg;
+        ctx.fillRect(0,0,w,h);
+        ctx.textAlign="center";
+        ctx.font=h/20+'px Roboto';
+
+
+        seed[0]=rSeed(10);
+        seed[1]=rSeed(10)+30;
+        seed[2]=rSeed(10)+20;
+
+        for (let i = 0; i < string.length; i++) {
+            initMiniCanvas(i);
+            mctx[i].fillStyle = 'white';
+            mctx[i].fillRect(0, 0, mw, mh);
+            mctx[i].fillStyle = 'black';
+            mctx[i].font = 'bold ' + mh * 0.8 + 'px Roboto';
+            mctx[i].textAlign = "center";
+            mctx[i].fillText(
+                string[i],
+                mw / 2,
+                mh * 0.8
+            );
+        }
+        for (let i = 0; i < string.length; i++) {
+            var massive = mctx[i].getImageData(0, 0, mw, mh);
+            data[i] = massive.data;
+            map[i] = {
+                x: [],
+                y: []
+            }
+            for (let j = 0; j < data[i].length; j += 4) {
+                if (data[i][j] < 250) {
+                    map[i].x.push((j / 4) % mw);
+                    map[i].y.push(Math.floor(j / 4 / mw))
+                }
+            }
+        }
+        max = 0;
+        for (let i = 0; i < map.length; i++) {
+            if (map[i].x.length > max) {
+                max = map[i].x.length
+            }
+
+        }
+        for (let i = 0; i < map.length; i++) {
+            var init = map[i].x.length;
+            for (let j = 0; j < max; j++) {
+                if (!map[i].x[j]) {
+                    var index = Math.floor(init - (j - init));
+                    map[i].x[j] = map[i].x[index]
+                    map[i].y[j] = map[i].y[index]
+                }
+            }
+        }
+        animate()
+    }
+
+    function animate() {
+        //ctx.globalAlpha=0.06;
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+        //ctx.globalAlpha=1;
+        l = Math.floor(time * 0.005) % map.length;
+       
+        for(let i=0;i<25;i++){
+            if(i%2==0)ctx.strokeStyle=fillColor;else ctx.fillStyle=strokeColor;
+            ctx.strokeText(
+                loader,
+                w/40+i*h/3-time%(w/3),
+                h/12
+            )
+            ctx.strokeText(
+                loader,
+                w/40+i*h/3-time%(w/3),
+                h-h/20
+            )
+        }
+        ctx.fillStyle = fillColor;
+        ctx.strokeStyle = strokeColor;
+
+        for (let i = 0; i < max; i++) {
+            if (l != 0) {
+                var x = interpolate(
+                    map[l - 1].x[i],
+                    map[l].x[i],
+                    (time % 200) / 200
+                );
+                var y = interpolate(
+                    map[l - 1].y[i],
+                    map[l].y[i],
+                    (time % 200) / 200
+                )
+            } else {
+                var x = interpolate(
+                    map[map.length - 1].x[i],
+                    map[l].x[i],
+                    (time % 200) / 200
+                );
+                var y = interpolate(
+                    map[map.length - 1].y[i],
+                    map[l].y[i],
+                    (time % 200) / 200
+                )
+            }
+            var k = Math.cos(time / 50 + i / max * 13);
+            var xx = x * size + Math.cos(time / 50 + x / w * 200) * 20;
+            var yy = y * size + Math.cos(time / 70 + y / w * 15) * 20;
+            ctx.lineWidth=3;
+            if (i % seed[0] == 0) {
+                ctx.strokeRect(
+                    xx - size / 2,
+                    yy - size / 2,
+                    size * k - 1,
+                    size * k - 1
+                )
+            } else {
+                ctx.fillRect(
+                    xx,
+                    yy,
+                    size / 4 * k + size / 2,
+                    size / 4 * k + size / 2
+                )
+            }
+            ctx.lineWidth=3;
+            if(i%seed[1]==0){
+                ctx.beginPath();
+                ctx.arc(
+                    xx,
+                    yy,
+                    size*k*0.5+size*2,
+                    0,
+                    Math.PI*2
+                )
+                ctx.stroke()
+            }
+
+
+        }
+
+        time++;
+        requestAnimationFrame(animate)
+    }
+
+    function interpolate(x0, x1, p) {
+        if (p > 0.5) {
+            p = (p - 0.5) * 2;
+            var delta = x1 - x0;
+            var x = delta * p + x0
+        } else {
+            var x = x0
+        }
+        return x
+    }
+
+    function initMiniCanvas(i) {
+        mcanvas[i] = document.createElement("canvas");
+        mcanvas[i].width = mw;
+        mcanvas[i].height = mh;
+        document.body.appendChild(mcanvas[i]);
+        mctx[i] = mcanvas[i].getContext("2d");
+
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = color[s][seed];
+        return rgb;
+    };
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    };
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    };
+</script>
+
+<body>
+    *
+</body>
+
+</html>

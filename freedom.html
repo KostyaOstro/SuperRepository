@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Titillium+Web:900" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Titillium Web', sans-serif;
+        }
+    </style>
+</head>
+<script>
+    var canvas, ctx, canvas2, ctx2, canvas3, ctx3;
+    var sw = sh = 128;
+    var w = h = 1024;
+    var scale = h / sh;
+    var time = 0;
+    var gsc;
+    var bgColor;
+    var massive, data;
+    var x = y = 0;
+    window.onload = function () {
+
+        // gsc = rSeed(5);
+
+        // bgColor = rColor(gsc);
+        canvas = document.createElement("canvas");
+        canvas.width = sw;
+        canvas.height = sh;
+        //document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+
+
+
+        canvas2 = document.createElement("canvas");
+        canvas2.width = w;
+        canvas2.height = h;
+        document.body.appendChild(canvas2);
+        ctx2 = canvas2.getContext("2d");
+        ctx2.fillStyle = "red";
+        ctx2.strokeStyle = "white";
+
+        freedom.init();
+
+        animate();
+
+    }
+
+
+    var freedom = {
+        text: ["HEAVY",'CHERRY',"BOMB"],
+        fontSize: sh / 5,
+        get lineHeight() {
+            let lh = fontSize * 1.2;
+            return lh
+        },
+        x1: [],
+        y1: [],
+        x0: [],
+        y0: [],
+
+        size: [],
+        angle: [],
+        d: [],
+        radius: sw / 3,
+        color: [],
+        type: [],
+        line: [],
+        init() {
+            ctx.textAlign = 'center';
+            ctx.font = 'bold ' + this.fontSize + 'px Arial';
+            for(let u=0;u<3;u++){
+                ctx.fillText(this.text[u], sw / 2, sh / 3.5+sh/4*u);
+            }
+            
+            massive = ctx.getImageData(0, 0, w, h);
+            data = massive.data;
+            for (let i = 0; i < massive.data.length; i += 4) {
+                if (data[i + 3] > 0) {
+                    let x = i / 4 % w;
+                    let y = Math.floor(i / 4 / w);
+                    this.x1.push(x);
+                    this.y1.push(y);
+
+                }
+
+            }
+            for (let j = 0; j < this.x1.length; j++) {
+                var angle = random(0, 2) * Math.PI;
+                let x = sw / 2 + Math.cos(angle) * random(0, 1) * this.radius;
+                let y = sh / 2 + Math.sin(angle) * random(0, 1) * this.radius;
+                this.x0.push(x);
+                this.y0.push(y);
+                var d = dist(
+                    this.x1[j],
+                    this.y1[j],
+                    this.x0[j],
+                    this.y0[j],
+                );
+                var angle = Math.atan2(
+                    this.y0[j] - this.y1[j],
+                    this.x0[j] - this.x1[j],
+                )
+                this.angle.push(angle);
+                this.d.push(d);
+                this.type[j] = rSeed(20);
+                this.line[j] = rSeed(3);
+                this.size[j] = random(0.1, 0.5)
+            }
+
+        },
+        draw() {
+
+            for(let ii=0;ii<100;ii++){
+                ctx2.strokeRect(
+                    ii%10*w/10-5,
+                    Math.floor(ii/10)*h/10-5,
+                    10,
+                    10
+                )
+                if(ii%13==0){
+                    ctx2.strokeRect(
+                    ii%10*w/10-20,
+                    Math.floor(ii/10)*h/10-20,
+                    40,
+                    40
+                )
+                }
+                if(ii%19==0){
+                    ctx2.fillRect(
+                    ii%10*w/10-5,
+                    Math.floor(ii/10)*h/10-5,
+                    10,
+                    10
+                )
+                }
+
+                if(ii%13==0){
+                    
+                    ctx2.fillText(
+                    'DANGEROUS',
+                    ii%10*w/10-5,
+                    Math.floor(ii/10)*h/10-5,
+                )
+                }
+            }
+            var px = [];
+            var py = [];
+            //var progress = (Math.cos(time / 50) + 1) / 2;
+            for (let j = 0; j < this.x1.length; j++) {
+                var dm = dist(this.x1[j]*scale, this.y1[j]*scale, x, y)/20;
+                //console.log(dm);
+                //if(dm>1){dm=1}
+                px[j] = this.x1[j] + Math.cos(this.angle[j]) * this.d[j] /Math.pow(dm,2)/2;
+                py[j] = this.y1[j] + Math.sin(this.angle[j]) * this.d[j] /Math.pow(dm,2)/2;
+                //if (this.line[j] > 2) {
+                    ctx2.lineWidth = 0.4;
+                    ctx2.beginPath();
+                    ctx2.moveTo(this.x1[j] * scale, this.y1[j] * scale);
+                    ctx2.lineTo(px[j] * scale, py[j] * scale);
+
+                    ctx2.closePath();
+                    ctx2.stroke();
+
+
+                //}
+                // switch (this.type[j]) {
+                    
+                //     case 1:
+                //          ctx2.fillStyle="black";
+                //         ctx2.beginPath();
+                //         ctx2.arc(
+                //             (this.x1[j] + Math.cos(this.angle[j]) * this.d[j] * progress*0.5)*scale,
+                //             (this.y1[j] + Math.sin(this.angle[j]) * this.d[j] * progress*0.5)*scale,
+                //             scale * this.size[j] / 2,
+                //             0,
+                //             Math.PI * 2
+                //         )
+                //         ctx.closePath();
+                //         ctx2.fill()
+                    
+                //         break;
+                // }
+            }
+
+            for (let j = 0; j < this.x1.length; j++) {
+                var dm = dist(this.x1[j]*scale, this.y1[j]*scale, x, y)/20;
+                ctx2.fillStyle="red";
+                
+                    
+                        ctx2.beginPath();
+                        ctx2.arc(
+                            px[j] * scale,
+                            py[j] * scale,
+                            scale * this.size[j]*((1+Math.cos(time/50+this.x1[j]/w*10))/2+1),
+                            0,
+                            Math.PI * 2
+                        )
+                        ctx.closePath();
+                        if(this.type[j]<10){
+                        ctx2.stroke()}else{ctx2.fill()}
+
+
+                        if(this.type[j]>19){
+                            ctx2.beginPath();
+                        ctx2.arc(
+                            px[j] * scale,
+                            py[j] * scale,
+                            scale * this.size[j]*5*((1+Math.cos(time/50+this.x1[j]/w*10))/2+1),
+                            0,
+                            Math.PI * 2
+                        )
+                        ctx.closePath();
+                        ctx2.stroke()
+                        }
+                       
+
+                        // ctx2.fillRect(
+                        //     px[j] * scale - scale * this.size[j] / 2,
+                        //     py[j] * scale - scale * this.size[j] / 2,
+                        //     scale * this.size[j]+this.size[j]/dm,
+                        //     scale * this.size[j]+this.size[j]/dm
+                        // )
+                       
+                
+
+
+
+            }
+        }
+    }
+
+    function draw() {
+        ctx2.fillStyle='black';
+        ctx2.fillRect(0,0,w,h);
+        ctx2.fillStyle='red';
+        freedom.draw();
+    }
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+
+        ctx.clearRect(0, 0, w, h);
+        ctx2.clearRect(0, 0, w, h);
+
+        //ctx.clearRect(0, 0, w, h)
+        //ctx.clearRect(0, 0, w, h)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    }
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    }
+
+    function dist(x1, y1, x2, y2) {
+        var dx = Math.abs(x1 - x2);
+        var dy = Math.abs(y1 - y2);
+        var d = Math.sqrt(dx * dx + dy * dy);
+        return d
+    }
+
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+    document.addEventListener('mousemove', mmm);
+
+    function mmm(e) {
+        e = event || window.event;
+        x = event.clientX;
+        y = event.clientY;
+        if (x > w) {
+            x = w
+        };
+        if (y > h) {
+            y = h
+        };
+        //console.log(x, y)
+    };
+</script>
+
+<body>
+    *
+</body>
+
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var txt;
+
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#140d26";
+        ctx.fillRect(0, 0, w, h);
+
+        var seed1 = rSeed(50);
+
+        
+        txt = {
+            value: 'DANGEROUS',
+            fs: 15,
+            lh: 1,
+            type: [],
+            draw() {
+
+                var step = w / this.fs;
+                if (time == 0) {
+                    console.log('hi');
+                    for (let i = 0; i < this.fs * this.fs; i++) {
+                        this.type[i] = rSeed(5);
+                    }
+                };
+                for (let i = 0; i < this.fs * this.fs; i++) {
+                    var x = i % this.fs * step;
+                    var y = Math.floor(i / this.fs) * step;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + step * .6, y);
+                    ctx.lineTo(x, y + step * .6);
+                    ctx.lineTo(x, y);
+                    ctx.closePath();
+                    ctx.globalAlpha = Math.cos(time * 5 + i / this.fs / this.fs * 27) * .1 +.2;
+                    if (this.type[i] == 1) {
+                        ctx.fill()
+                    }   
+
+                    if (this.type[i] == 0) {
+                        ctx.stroke()
+                    }
+
+                }
+                ctx.globalAlpha = 1;
+                var x0 = w * 4 / 5.5;
+                var ww = w / 5;
+                ctx.strokeRect(
+                    x0,
+                    x0,
+                    ww,
+                    ww
+                );
+                ctx.font = w / 20 +'px arial';
+                ctx.textAlign = "center" ;
+                for(let j=0; j < this.value.length; j++){
+                    var x = x0 + j%3 * ww / 2;
+                    var y = x0 + Math.floor(j / 3) * ww / 2 + w / 40;
+                    ctx.fillText(
+                        this.value[j],
+                        x, y
+                    )
+                }
+
+
+
+                
+            }
+        };
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer({
+            alpha: true
+        });
+
+
+        renderer.setSize(w, h);
+        //document.body.appendChild(renderer.domElement);
+        renderer.shadowMap.enabled = true;
+
+        var ambientLight = new THREE.AmbientLight(new THREE.Color('blue'), .5);
+        scene.add(ambientLight);
+
+        var pointLight = new THREE.PointLight(new THREE.Color('red'), 1);
+        scene.add(pointLight);
+        pointLight.position.set(100, 100, 100);
+        pointLight.castShadow = true;
+        pointLight.shadow.bias = -.004;
+        pointLight.shadow.radius = 2;
+        pointLight.shadow.mapSize.x = 1024;
+        pointLight.shadow.mapSize.y = 1024;
+
+        var material = new THREE.MeshStandardMaterial({
+            color: "gray",
+            roughness: .2,
+        });
+
+        var material2 = new THREE.MeshBasicMaterial({
+            color: "red",
+            //wireframe: true
+        });
+        var material3 = new THREE.MeshBasicMaterial({
+            color: "red",
+            wireframe: true
+        });
+        var copies = 10;
+        var mesh = [];
+        var pivot = [];
+        var mechano = {
+            all: new THREE.Object3D(),
+            copies: 30,
+            segments: 50,
+            radius: 5,
+            line: [],
+            ipivot: [],
+            position: [],
+            rotate: [],
+            init() {
+                for (let j = 0; j < this.copies; j++) {
+                    this.line[j] = [];
+                    this.ipivot[j] = [];
+                    pivot[j] = new THREE.Object3D();
+                    for (let i = 0; i < this.segments; i++) {
+                        this.ipivot[j][i] = new THREE.Object3D();
+                        var r = (1 - i / this.segments) * 5 + .2;
+                        var geometry = new THREE.BoxBufferGeometry(
+                            r,
+                            r,
+                            r,
+                            1,
+                            1,
+                            1
+                        );
+                        if (rSeed(100) > 90) {
+                            if (rSeed(3) > 1) {
+                                this.line[j][i] = new THREE.Mesh(geometry, material2);
+                                this.line[j][i].castShadow = true;
+                            } else {
+                                this.line[j][i] = new THREE.Mesh(geometry, material3);
+
+                            }
+
+                        } else {
+                            this.line[j][i] = new THREE.Mesh(geometry, material);
+                            this.line[j][i].castShadow = true;
+                            this.line[j][i].receiveShadow = true;
+                        }
+
+                        this.ipivot[j][i].add(this.line[j][i]);
+                        pivot[j].add(this.ipivot[j][i]);
+                        var t = i / this.segments;
+                        var x = t * 50;
+                        var y = Math.sin(t * j + time / i) * 40 * t;
+                        var z = Math.cos(t * j + time / i) * 20 * t;
+
+                        this.ipivot[j][i].position.set(x, y, z);
+
+                        //this.line[j][i].rotation.z = Math.PI / 2;
+                    }
+                    this.all.add(pivot[j]);
+                }
+                scene.add(this.all)
+            },
+            draw() {
+                for (let j = 0; j < this.copies; j++) {
+                    if (j % 2 == 0) {
+                        var k = -1
+                    } else {
+                        var k = 1
+                    }
+                    for (let i = 0; i < this.segments; i++) {
+
+                        var t = i / this.segments;
+                        var x = t * 40 + Math.cos(time + j / this.copies * 20) * 10;
+                        var y = k * Math.sin(t * 5 + time / j * 2) * 40 * t;
+                        var z = k * Math.cos(t + time / j * 2) * 20 * t;
+                        this.line[j][i].rotation.x = Math.cos(time * 5 + j / this.copies + i / this.segments * 5);
+                        this.line[j][i].rotation.y = Math.sin(time * 5 + j / this.copies + i / this.segments * 5);
+                        this.ipivot[j][i].position.set(x, y, z);
+
+                    }
+                    pivot[j].rotation.y = Math.cos(time / 20 + j / this.copies * 8) * Math.PI * 2;
+                    pivot[j].rotation.x = Math.sin(time / 20 + j / this.copies * 6) * Math.PI * 2;
+                    pivot[j].rotation.z = Math.sin(time / 10 + j / this.copies * 3) * Math.PI * 2;
+                    this.all.rotation.y = time;
+                }
+            }
+        }
+
+        mechano.init();
+
+        animate();
+
+        function gp(t, i) {
+            var x = t * 40;
+            var y = Math.sin(t + time) * 40 * t;
+            var z = Math.cos(t + time) * 20 * t;
+            return new THREE.Vector3(x, y, z)
+        }
+
+
+
+        function animate() {
+
+            mechano.draw();
+
+            renderer.render(scene, camera);
+
+            if (ctx) {
+
+                ctx.fillStyle = "#08050f";
+               // ctx.globalAlpha = .08;
+                ctx.fillRect(0, 0, w, h);
+               
+                ctx.fillStyle = 'red';
+                ctx.strokeStyle = 'red';
+                txt.draw();
+                ctx.globalAlpha = 1;
+               
+
+                ctx.drawImage(renderer.domElement, 0, 0)
+
+            }
+
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

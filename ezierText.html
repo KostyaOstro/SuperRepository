@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/myLib.js"></script>
+</head>
+<script>
+    var cancas, ctx;
+    var w = h = 1024;
+    var time = 0;
+    var posX = posY = w / 2;
+    window.onload = function () {
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+
+        animate()
+    }
+
+    var bezierText = {
+        string: 'MYSTERONS',
+        fs: 0,
+        x: [],
+        y: [],
+        childs: [],
+        l: [],
+        color: [
+            "white",
+            "black"
+        ],
+        k1: [],
+        k2: [],
+        type: [],
+        draw() {
+            if (time == 0) {
+                this.fs = w / random(6, 20);
+                let u = rSeed(2) + 3;
+
+                ctx.fillStyle = this.color[0];
+                ctx.strokeStyle = this.color[1];
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = this.color[1];
+                for (let i = 0; i < u * u; i++) {
+                    let rx = w / (u + 1) * ((i % u) + 1);
+                    let ry = w / (u + 1) * (Math.floor(i / u) + 1);
+                    let rs = w / 30 / u;
+                    for (let j = 0; j < 4; j++) {
+                        let a2 = j * Math.PI / 2;
+                        let rx2 = Math.cos(a2) * rs + rx;
+                        let ry2 = Math.sin(a2) * rs + ry;
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            rx,
+                            ry,
+                        )
+                        ctx.lineTo(
+                            rx2,
+                            ry2,
+                        )
+                        ctx.stroke()
+                    }
+
+                    ctx.font = rs + 'px arial';
+                    if (rSeed(3) > 2) {
+                        ctx.fillText(
+                            '0000' + rSeed(400),
+                            rx + rs / 2,
+                            ry - rs / 2
+                        )
+                    }
+                    if (rSeed(3) > 2) {
+                        ctx.strokeRect(
+                            rx - rs / 2 * 1.3,
+                            ry - rs / 2 * 1.3,
+                            rs * 1.3,
+                            rs * 1.3
+                        )
+                    }
+
+
+                }
+
+
+                for (let i = 0; i < this.string.length; i++) {
+                    this.x[i] = w / 2;
+                    this.y[i] = h / 2;
+                    this.childs[i] = rSeed(3);
+                    this.l[i] = random(this.fs, this.fs * 3);
+                    this.k1[i] = random(2, 8);
+                    this.k2[i] = random(4, 6);
+                    this.type[i] = rSeed(1);
+                }
+
+            };
+
+
+
+
+
+            for (let i = 0; i < this.string.length; i++) {
+                if (i !== 0) {
+                    let dx = this.x[i - 1] - this.x[i];
+                    let dy = this.y[i - 1] - this.y[i];
+                    let d = Math.sqrt(
+                        Math.pow(dx, 2) + Math.pow(dy, 2)
+                    )
+                    if (d > this.fs) {
+                        let angle = Math.atan2(dy, dx);
+                        this.x[i] += Math.cos(angle) * 2;
+                        this.y[i] += Math.sin(angle) * 2
+                    }
+                } else {
+                    let dx = posX - this.x[i];
+                    let dy = posY - this.y[i];
+                    let d = Math.sqrt(
+                        Math.pow(dx, 2) + Math.pow(dy, 2)
+                    )
+                    if (d > 0) {
+                        let angle = Math.atan2(dy, dx);
+                        this.x[i] += Math.cos(angle) * 2;
+                        this.y[i] += Math.sin(angle) * 2
+                    }
+
+                }
+                for (let j = 0; j < this.childs[i]; j++) {
+                    let pa = time / 100 + i / this.string.length * this.childs[i] + j / this.childs[i] * 3;
+                    let pl = this.l[i] * Math.cos(time / 60 + i / this.string.length * this.k1[i] + j) + this.fs /
+                    4;
+                    let px = this.x[i] + Math.cos(pa) * pl;
+                    let py = this.y[i] + Math.sin(pa) * pl;
+                    let ps = this.fs / 20 * Math.abs(Math.cos(time / 60 + i / this.string.length * this.k1[i] + j /
+                            this.childs[i] * this.k2[i])) +
+                        this.fs / 100;
+                    ctx.lineWidth = .5;
+                    if(this.type[i] == 0){
+                        ctx.fillStyle = this.color[1];
+                        ctx.strokeStyle = this.color[0];
+                    } else {
+                        ctx.fillStyle = this.color[0];
+                        ctx.strokeStyle = this.color[1];
+                    }
+                    
+                    
+                    ctx.fillRect(
+                        px,
+                        py,
+                        ps,
+                        ps
+                    );
+                    ctx.strokeRect(
+                        px,
+                        py,
+                        ps,
+                        ps
+                    );
+                }
+
+
+
+
+                ctx.font = 'bold ' + this.fs + 'px arial';
+                ctx.textAlign = "center";
+
+                ctx.fillStyle = this.color[0];
+                ctx.strokeStyle = this.color[1];
+                ctx.lineWidth = 1;
+                ctx.fillText(
+                    this.string[i],
+                    this.x[i],
+                    this.y[i] + this.fs / 2,
+                );
+                ctx.strokeText(
+                    this.string[i],
+                    this.x[i],
+                    this.y[i] + this.fs / 2,
+                )
+
+            }
+            if (time % 237 == 0) {
+                let index = rSeed(this.string.length - 1);
+                let size = random(w / 40, w / 6);
+                ctx.fillStyle = this.color[1];
+                ctx.strokeStyle = this.color[0];
+                ctx.fillRect(
+
+                    this.x[index] - size /2,
+                    this.y[index] - size /2,
+                    size,
+                    size
+                );
+                ctx.strokeRect(
+
+                    this.x[index] - size /2,
+                    this.y[index] - size /2,
+                    size,
+                    size
+                );
+                ctx.strokeStyle = this.color[1];
+                for (let jj = 0; jj < 4; jj++) {
+                    let a2 = jj * Math.PI / 2;
+                    let rx2 = Math.cos(a2) * size / 2 + this.x[index] - size /2;
+                    let ry2 = Math.sin(a2) * size / 2 + this.y[index] - size /2;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        this.x[index] - size /2,
+                        this.y[index] - size /2,
+                    )
+                    ctx.lineTo(
+                        rx2,
+                        ry2,
+                    )
+                    ctx.stroke()
+                };
+                ctx.font = w / 80 + 'px arial';
+                ctx.fillStyle = this.color[0];
+                ctx.textAlign = "right";
+                let symbols = '#$&*^%$#*&@';
+                ctx.fillText(
+                    rSeed(100) + symbols[rSeed(symbols.length - 1)] + symbols[rSeed(symbols.length - 1)],
+                    this.x[index] + size / 2,
+                    this.y[index] + size / 2,
+                )
+                
+            }
+
+        }
+    }
+
+    window.onmousemove = function () {
+        var e = window.event;
+
+        posX = e.clientX;
+        posY = e.clientY;
+
+
+
+        // var t = setTimeout(mouse_position, 100);
+
+    }
+
+
+
+    function animate() {
+        //clear();
+        bezierText.draw();
+        requestAnimationFrame(animate);
+        time++;
+
+    }
+
+    function clear() {
+        ctx.clearRect(0, 0, w, h)
+    }
+</script>
+
+<body>
+
+</body>
+
+</html>

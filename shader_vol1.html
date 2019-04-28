@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+    <script id="fragmentShader" type='x-shader/x-fragment'>
+        uniform float time;
+        uniform sampler2D texture1;
+        varying vec2 vUv;
+
+        mat2 rotate(float angle){
+
+            return mat2(
+                cos(angle), -sin(angle),
+                sin(angle), cos(angle)
+            );
+
+        }
+
+        float box(float s, vec2 uv){
+            float s2 = 0.1;
+            //float b = step(-s, uv.x) - step(s, uv.x);
+            // b += -step(s, uv.y) / step(-s, uv.y);
+            float b = smoothstep(-s, -s + s2, uv.x) - smoothstep(s, s + s2, uv.x);
+            b += -smoothstep(s, s + s2, uv.y) / smoothstep(-s, -s + s2, uv.y);
+            return b;
+
+        }
+
+        void main(){
+            vec2 mv = vUv;
+            float l = length(mv - .5);
+            mv.y += fract(cos(mv.x * 100. + time / 4.) - .01) / 20.
+                + fract(cos(mv.y * 100.) - .01) / 20. -.08
+                ;
+            
+            //mv.x += floor(cos(l * 200. + time)) / 40.;
+            vec4 img = texture2D(texture1, mv);
+
+            gl_FragColor = vec4(vec3( img.r), 1.);
+        }
+
+    </script>
+    <script id="vertexShader" type='x-shader/x-vertex'>
+        uniform float time;
+        varying vec2 vUv;
+
+
+        void main(){
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        }
+
+    </script>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        //document.body.appendChild(canvas);
+        var ctx = canvas.getContext("2d");
+
+        var fs = h / 2.5;
+        var lh = .6;
+        ctx.font = fs + 'px roboto';
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'black';
+        ctx.textAlign = "center";
+        var txt =['VERY', 'HOT'];
+        for (let j = 0; j < txt.length; j++){
+            ctx.fillText(
+                txt[j],
+                w / 2,
+                h / 2 + fs * lh / 2 * j + j * lh * fs
+            )
+        }
+
+        if (ctx) {
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+            camera.position.set(0, 0, 80);
+            var renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(w, h);
+            document.body.appendChild(renderer.domElement);
+            var tex = new THREE.CanvasTexture(canvas);
+            var uniforms = {
+                time: {
+                    type: 'f',
+                    value: 0
+                },
+                'texture1': {
+                    value: tex
+                }
+            };
+
+
+            var material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                fragmentShader: document.getElementById('fragmentShader').textContent,
+                vertexShader: document.getElementById('vertexShader').textContent,
+                side: THREE.DoubleSide
+            });
+
+            mesh = [];
+            var copies = 1;
+            for (let i = 0; i < copies; i++) {
+                var geometry = new THREE.PlaneBufferGeometry(100, 100);
+                mesh[i] = new THREE.Mesh(geometry, material);
+                scene.add(mesh[i]);
+                // mesh[i].rotation.y = random(0, Math.PI * 2);
+                // mesh[i].rotation.x = random(0, Math.PI * 2);
+                // mesh[i].rotation.z = random(0, Math.PI * 2);
+            }
+
+
+
+
+            animate()
+        }
+
+        function animate() {
+            // for (let i = 0; i < copies; i++){
+            //     mesh[i].rotation.y += .01;
+            //     mesh[i].rotation.x += .01;
+            // }
+            requestAnimationFrame(animate);
+            time += .1;
+            uniforms.time.value = time;
+            renderer.render(scene, camera)
+        }
+    </script>
+</body>
+
+</html>

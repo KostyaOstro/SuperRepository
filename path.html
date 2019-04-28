@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display|Ubuntu" rel="stylesheet">
+</head>
+<style>
+    * {
+        font-family: 'Ubuntu', sans-serif;
+    }
+</style>
+<script>
+    var canvas, ctx, canvas2, ctx2, canvas3, ctx3;
+    var w = h = 1024;
+    var time = 0;
+    var gsc;
+    var bgColor;
+    var string=new String("RANDOMNESS");
+
+    window.onload = function () {
+
+        gsc = rSeed(4);
+        bgColor = rColor(gsc);
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        //document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        canvas2 = document.createElement("canvas");
+        canvas2.width = w;
+        canvas2.height = h;
+        //document.body.appendChild(canvas2);
+        ctx2 = canvas2.getContext("2d");
+
+        canvas3 = document.createElement("canvas");
+        canvas3.width = w;
+        canvas3.height = h;
+        document.body.appendChild(canvas3);
+        ctx3 = canvas3.getContext("2d");
+
+
+        path.init();
+
+
+
+
+        animate();
+
+    }
+
+    var path = {
+        strokeColor: 0,
+        lw: [],
+        points: 10,
+        x: [],
+        y: [],
+        px: 0,
+        py: 0,
+        childX: [],
+        childY: [],
+        way: 0,
+        color: [],
+        radius: [],
+        as: [],
+        init() {
+
+            for (let i = 0; i < this.points; i++) {
+                this.x[i] = random(0, w);
+                this.y[i] = random(0, h);
+                this.radius[i] = random(w / 50, w / 4);
+                this.as[i] = random(20, 200);
+                this.color[i] = rColor(gsc);
+                this.lw[i] = random(1, 50);
+
+            }
+            this.strokeColor = rColor(gsc);
+            this.pColor = rColor(gsc);
+            this.px = this.x[0];
+            this.py = this.y[0]
+        },
+        draw() {
+            ctx.fillStyle=bgColor;
+            ctx.fillRect(0,0,w,h);
+            for (let i = 0; i < this.points; i++) {
+                ctx.beginPath();
+                ctx.arc(
+                    this.x[i],
+                    this.y[i],
+                    this.radius[i],
+                    0,
+                    Math.PI * 2
+                )
+                ctx.closePath();
+                ctx.strokeStyle = this.color[i];
+                ctx.lineWidth = this.lw[i];
+                ctx.stroke();
+            }
+
+
+
+            for (let i = 0; i < this.points; i++) {
+                ctx.beginPath();
+                this.childX[i] = this.x[i] + Math.cos(time / this.as[i]) * this.radius[i];
+                this.childY[i] = this.y[i] + Math.sin(time / this.as[i]) * this.radius[i];
+
+                if (i == 0) {
+                    //ctx.moveTo(this.childX[i], this.childY[i])
+                } else {
+
+                    ctx.moveTo(this.childX[i - 1], this.childY[i - 1])
+                    ctx.lineTo(this.childX[i], this.childY[i])
+
+
+                }
+
+                ctx.fillStyle = "black";
+                ctx.fillRect(this.childX[i] - 5, this.childY[i] - 5, 10, 10);
+                ctx.closePath();
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.font='80px Ubuntu';
+                ctx.fillText(
+                    string[i],
+                    this.childX[i]-20,
+                    this.childY[i]+40
+                )
+            };
+
+
+
+
+
+
+            var d = dist(this.px, this.py, this.childX[this.way + 1], this.childY[this.way + 1]);
+            var progress = time % 200 / 200;
+            //console.log(progress)
+            if (progress > 0.99) {
+                this.way += 1;
+                if (this.way == this.points - 1) {
+                    this.way = 0
+                }
+                console.log(this.way)
+            }
+
+            var d2 = dist(this.childX[this.way], this.childY[this.way], this.childX[this.way + 1], this.childY[this
+                .way + 1]);
+            var x0 = this.childX[this.way];
+            var y0 = this.childY[this.way];
+            var x1 = this.childX[this.way + 1];
+            var y1 = this.childY[this.way + 1];
+
+            //console.log(progress);
+            var angle = Math.atan2(
+                this.childY[this.way + 1] - this.childY[this.way],
+                this.childX[this.way + 1] - this.childX[this.way],
+            );
+            this.px = this.childX[this.way] + Math.cos(angle) * progress * d2;
+            this.py = this.childY[this.way] + Math.sin(angle) * progress * d2;
+            ctx2.fillStyle = this.pColor;
+            ctx2.beginPath();
+            ctx2.arc(
+                this.px,
+                this.py,
+                10,
+                0,
+                Math.PI * 2
+            )
+            ctx2.closePath();
+            //ctx.lineWidth=1;
+            ctx2.fill();
+
+
+
+            //ctx3.drawImage(canvas2,0,0);
+            ctx3.fillStyle = 'black';
+            ctx3.drawImage(canvas, 0, 0);
+            if (progress <= 0.99) {
+                ctx3.fillRect(
+                    this.px,
+                    this.py,
+                    60,
+                    h / 20
+
+                )
+                ctx3.font=h/60+'px arial';
+                ctx3.fillStyle = 'white';
+                ctx3.fillText(
+                    Math.round(this.px * 10) / 10,
+                    this.px+10,
+                    this.py+20,
+                );
+                ctx3.fillText(
+                    Math.round(this.py * 10) / 10,
+                    this.px+10,
+                    this.py+40,
+                )
+            }
+
+        }
+    }
+
+
+
+    function draw() {
+
+        path.draw();
+
+    }
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+
+        ctx.clearRect(0, 0, w, h);
+        ctx3.clearRect(0, 0, w, h);
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    }
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    }
+
+    function dist(x1, y1, x2, y2) {
+        var dx = Math.abs(x1 - x2);
+        var dy = Math.abs(y1 - y2);
+        var d = Math.sqrt(dx * dx + dy * dy);
+        return d
+    }
+
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var scolor = [];
+        scolor[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        scolor[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        scolor[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        scolor[3] = ["#999", "#777", "#555", "#333", "#111"];
+        scolor[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        scolor[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = scolor[s][seed];
+        return rgb;
+    }
+</script>
+
+
+<body>
+    *
+</body>
+
+</html>

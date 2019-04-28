@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px
+        }
+    </style>
+
+</head>
+<script src="javascripts/three.js"></script>
+
+
+
+
+
+<body>
+    <script>
+        var depth = 0;
+        var side = 1.6;
+        var copies = 64;
+        var margin = 0.1;
+        var xx = 0;
+        var data = []
+        var yy = 0;
+        var x = 0;
+        var y = 0;
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        var scene = new THREE.Scene();
+        var renderer = new THREE.WebGLRenderer();
+        var plane = [];
+        var pivot = [];
+        var index = 0;
+        var time = 0;
+
+        renderer.setSize(w, h);
+        document.body.appendChild(renderer.domElement);
+        var camera = new THREE.PerspectiveCamera(65, w / h, 0.01, 2000);
+        scene.add(camera);
+        camera.position.z = 100;
+        //var alight = new THREE.AmbientLight('white', 0.2);
+        // scene.add(alight);
+
+        initMassive();
+        var all = new THREE.Object3D();
+        for (i = 0; i < copies; i++) {
+            for (j = 0; j < copies; j++) {
+                if (data[i][j] != 0) {
+                    //console.log(index);
+                    var color = randomColor(index);
+                    var size = data[i][j] * side - margin;
+                    var seed = Math.round(Math.random() * 4);
+                    var seed2= Math.round(Math.random() * 4);
+                    if(seed2>2){
+                    var planem = new THREE.MeshBasicMaterial({
+                        color: color,
+                        wireframe: true
+                    });}else{
+                        var planem = new THREE.MeshBasicMaterial({
+                        color: color,
+                        //wireframe: true
+                    }); 
+                    }
+                    pivot[index] = new THREE.Object3D();
+                    switch (seed) {
+                        case 1:
+                            var planeg = new THREE.PlaneGeometry(size, size, 1, 1);
+                            plane[index] = new THREE.Mesh(planeg, planem);
+                            pivot[index].add(plane[index]);
+                            break;
+                        case 2:
+                            var planeg = new THREE.PlaneGeometry(size * 3 / 4, size / 4, 1, 1);
+                            plane[index] = new THREE.Mesh(planeg, planem);
+                            plane[index].rotation.z = Math.PI / 4;
+                            pivot[index].add(plane[index]);
+                            plane[index] = new THREE.Mesh(planeg, planem);
+                            plane[index].rotation.z = -Math.PI / 4;
+                            pivot[index].add(plane[index]);
+                            break;
+                       /* case 3:
+                            var planeg = new THREE.CircleGeometry(size / 2, 1,Math.PI/3);
+                            plane[index] = new THREE.Mesh(planeg, planem);
+                            plane[index].rotation.z=-Math.PI/6;
+                            plane[index].position.y=side/6;
+                            pivot[index].add(plane[index]);
+                            break;*/
+                        default:
+                            var planeg = new THREE.CircleGeometry(size / 2, 20);
+                            plane[index] = new THREE.Mesh(planeg, planem);
+                            pivot[index].add(plane[index]);
+                            break;
+                    }
+
+
+                    all.add(pivot[index]);
+                    pivot[index].position.x = i * side + size / 2 - side * copies / 2;
+                    pivot[index].position.y = j * side + size / 2 - side * copies / 2;
+                    index++
+                }
+            }
+        }
+        scene.add(all);
+        animate();
+
+        function randomColor(index) {
+            var seed4=Math.round(Math.random()*4);
+            if(seed4>3){
+                rgb="white";
+            }else{
+            // console.log(rgb);
+            var r =0;// Math.floor(Math.abs(Math.sin(index) * 128)) + 128;
+            var g = Math.floor(Math.abs(Math.sin(index) * 128)) + 128; //0;//Math.round(Math.sin(index)*128)+128;
+            var b = Math.floor(Math.abs(Math.sin(index+Math.random()) * 128)) + 128;
+            var rgb = "rgb(" + r + "," + g + "," + b + ")";
+        }
+            return rgb;
+        }
+
+        function animate() {
+            for (i = 0; i < plane.length; i++) {
+               // pivot[i].position.z = Math.sin(time / 20 + i / 10) * 2;
+                //all.rotation.y=Math.sin(time/40)*Math.PI/20;
+            }
+            renderer.render(scene, camera);
+            window.requestAnimationFrame(animate);
+            time++
+
+        }
+
+
+
+
+
+
+
+
+
+        function initMassive() {
+            for (var z = 0; z < copies; z++) {
+                data[z] = [];
+                for (var h = 0; h < copies; h++) {
+                    data[z][h] = 0;
+                }
+            }
+            createMassive();
+
+        }
+
+        function createMassive() {
+            var dd = Math.pow(2, depth);
+            if (depth > 4) {
+                return
+            } else {
+                for (var i = 0; i < copies / dd; i++) {
+                    for (var j = 0; j < copies / dd; j++) {
+
+
+                        var seed = Math.round(Math.random() * 4);
+                        if (seed > 2) {
+                            var xx = i * dd;
+                            var yy = j * dd;
+                            data[xx][yy] = dd;
+                            if (dd > 1) {
+                                // console.log("dd=" + dd + ",xx=" + xx + ",yy=" + yy);
+                                for (i2 = 0; i2 < dd; i2++) {
+                                    for (j2 = 0; j2 < dd; j2++) {
+                                        if (i2 != 0 || j2 != 0) {
+                                            var xx2 = xx + i2;
+                                            var yy2 = yy + j2;
+                                            if (xx2 < copies || yy2 < copies) {
+                                                //console.log("xx2=" + xx2 + ",yy2=" + yy2);
+                                                data[xx2][yy2] = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                depth++;
+                createMassive();
+            }
+        }
+    </script>
+</body>
+
+</html>

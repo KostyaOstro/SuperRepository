@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+   
+    <script id='fShader' type="x-shader/x-fragment">
+        uniform float time;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        varying vec2 mv;
+
+        mat2 rotate(float angle){
+            return mat2(
+                cos(angle), -sin(angle),
+                sin(angle), cos(angle));
+        }
+        void main(){
+            vec4 img2 = texture2D(texture2, fract(mv * 3.) );
+            
+            vec2 pv = mv;
+            //pv.x += floor(cos(pv.y *65.)) / 50.;
+           
+            vec4 img1 = texture2D(texture1, pv); 
+            float l = step(1. - img1.r, fract(length(mv - .5) + fract(cos(img2.r + time / 10.) * 3.) ));
+            vec4 col = vec4(vec3(l), 1.);
+           
+            gl_FragColor = col;
+        }
+    </script>
+    <script id='vShader' type="x-shader/x-vertex">
+        uniform float time;
+        varying vec2 mv;
+        void main(){
+            mv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        }
+    </script>
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:700" rel="stylesheet">
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var uniforms;
+        var w = h = 1024;
+        var type = [];
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+        for (let i = 0; i < 25; i++){
+            type[i] = rSeed(4);
+        }
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(55, w / h, .01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(w, h);
+        //document.body.appendChild(renderer.domElement);
+        var tex1 = new THREE.TextureLoader().load('/images/skull/pic1.jpg');
+        var tex2 = new THREE.TextureLoader().load('/images/skull/pic2.jpg');
+        uniforms = {
+            time: {
+                type: "f",
+                value: 0
+            },
+            "texture1": {
+                value: tex1
+            },
+            "texture2": {
+                value: tex2
+            }
+        };
+
+        var geometry = new THREE.PlaneGeometry(100, 100);
+        var material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: document.getElementById('vShader').textContent,
+            fragmentShader: document.getElementById('fShader').textContent,
+            side: THREE.DoubleSide
+        });
+        var plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
+
+        animate()
+
+        function animate() {
+            uniforms.time.value = time;
+            renderer.render(scene, camera);
+            ctx.drawImage(renderer.domElement, 0., 0.);
+
+            ctx.lineWidth = 5;
+
+            var string = ["DEAD_", "MAN'S", "BONES"];
+            for (let i = 0; i < string.length; i++) {
+
+                ctx.textAlign = "center";
+                var fs = h / 16;
+                ctx.font = fs + 'px Roboto Condensed';
+                var lh = 1;
+                ctx.fillStyle = "white";
+
+                ctx.fillStyle = "red";
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 3;
+
+              
+
+
+
+                for (let ii = 0; ii < string[i].length; ii++) {
+                    let x = w / string[i].length * (ii +.5);
+                    let y = h / string.length * (.5 + i);
+                    ctx.fillText(
+                        string[i][ii],
+                        x,
+                        y
+                    )
+                    if(type[i * 5 + ii] == 1){
+                        ctx.beginPath();
+                        ctx.arc(
+                            x,
+                            y - fs /3,
+                            fs ,
+                            0,
+                            Math.PI*2
+                        )
+                        ctx.stroke()
+                    };
+                    if(type[i * 5 + ii] == 2){
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            x - 50 ,
+                            y - fs /3 - 50,
+                        )
+                        ctx.lineTo(
+                            x + 50 ,
+                            y - fs /3 + 50,
+                        )
+                        ctx.stroke()
+
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            x + 50 ,
+                            y - fs /3 - 50,
+                        )
+                        ctx.lineTo(
+                            x - 50 ,
+                            y - fs /3 + 50,
+                        )
+                        ctx.stroke()
+                    }
+                }
+
+            }
+
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+    *
+</body>
+
+</html>

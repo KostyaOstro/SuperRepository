@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/myLib.js"></script>
+    <script>
+        var ctx, canvas;
+        var w = h = 1024;
+        var time = 0;
+        var massive, data;
+        var col = [];
+        var k = [];
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            ctx = canvas.getContext("2d");
+            document.body.appendChild(canvas);
+
+            var step = 8;
+
+
+            var image = new Image();
+            image.src = "/images/Iam.jpg";
+            image.onload = function () {
+                let pw = image.width;
+                let ph = image.height
+                ctx.drawImage(
+                    image,
+                    0, 0, pw, ph,
+                    0, 0, w / step, h / step
+                );
+                massive = ctx.getImageData(0, 0, w / step, h / step);
+                data = massive.data;
+                ctx.textAlign = "center";
+                var fs = step;
+                ctx.font = fs + 'px arial';
+                var max = 64;
+                for (let j = max; j > 1; j -= 4) {
+
+
+
+                    for (let i = 0; i < data.length; i += 4 * j) {
+                        if (rSeed(max) > (max - j) / 2 || j == max) {
+                            col[i] = "rgb(" + data[i] + "," + data[i + 1] + "," + data[i + 2] + ")";
+                            k[i] = Math.round(data[i] / 255 * step) * 2;
+                            let x = ((i / 4 / j) % Math.floor(w / step)) * step * j;
+                            let y = Math.floor((i / 4 / j) / (w / step)) * step * j;
+                            ctx.fillStyle = col[i];
+                            ctx.fillRect(
+                                x,
+                                y,
+                                step * j,
+                                step * j
+                            )
+                            ctx.strokeStyle = "white";
+                            ctx.strokeRect(
+                                x + 1,
+                                y + 1,
+                                step * j - 2,
+                                step * j - 2
+                            )
+                            if (rSeed(10) > 9) {
+                                ctx.fillStyle = 'white';
+                                ctx.fillText(
+                                    k[i],
+                                    x + step / 2,
+                                    y - fs
+                                )
+                            }
+                            ctx.strokeStyle = "white";
+
+                        }
+                    }
+
+                }
+                for (let i = 0; i < data.length; i += 4) {
+                    ctx.strokeStyle = "white";
+                    let x = ((i / 4) % (w / step)) * step;
+                    let y = Math.floor((i / 4) / (w / step)) * step;
+                    if (rSeed(120) > 119) {
+                        if (rSeed(2) > 1) {
+                            let rr = step * (rSeed(100) + 3);
+                            ctx.beginPath();
+                            ctx.arc(
+                                x,
+                                y,
+                                rr,
+                                0,
+                                Math.PI * 2
+                            )
+                            ctx.stroke()
+
+                        } else {
+                            ctx.strokeRect(
+                                x,
+                                y,
+                                step * (rSeed(100) + 1),
+                                step * (rSeed(100) + 1)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

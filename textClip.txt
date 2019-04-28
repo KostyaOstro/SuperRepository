@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<script>
+    var canvas, ctx, canvas2, ctx2;
+    var w = 1000;
+    var h = 1000;
+    var time = 0;
+    var globalSeedColor;
+    var obj = [];
+    var objects = 200;
+    var lw = 2;
+    var clipRect = [];
+    var grid = 10;
+    window.onload = function () {
+        globalSeedColor = Math.round(Math.random() * 3);
+        canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        //document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+        ctx.fillStyle = rColor(globalSeedColor);
+        ctx.fillRect(0, 0, w, h);
+
+        canvas2 = document.createElement('canvas');
+        canvas2.width = w;
+        canvas2.height = h;
+        document.body.appendChild(canvas2);
+        ctx2 = canvas2.getContext("2d");
+        ctx2.fillStyle = ctx.fillStyle
+        ctx2.fillRect(0, 0, w, h);
+
+        for (var i = 0; i < objects; i++) {
+            obj[i] = {
+                size: Math.round(Math.random() * w / 50),
+                x: Math.random() * w,
+                y: Math.round(Math.random() * h / lw / 2) * lw * 2,
+                vx: Math.random() - 0.5,
+                vy: Math.random() - 0.5,
+                type: Math.round(Math.random() * 4),
+                type2: Math.round(Math.random() * 2),
+                color: rColor(globalSeedColor),
+                timer: Math.random() * 500 + 200,
+                trigger: 0,
+                padding: Math.pow(lw, Math.round(Math.random() * 3)),
+                speed: Math.random() * 5,
+                draw() {
+
+                    ctx.fillStyle = this.color;
+                    if (this.trigger > this.timer) {
+                        this.timer = Math.random() * 500 + 200;
+                        this.trigger = 0;
+                        this.vx = Math.random() - 0.5;
+                        this.vy = Math.random() - 0.5;
+
+                    };
+
+                    this.x += this.vx * this.speed;
+                    this.y += this.vy * this.speed;
+                    if (this.x > w || this.x < 0) {
+                        this.vx = -this.vx
+                    }
+                    if (this.y > h || this.y < 0) {
+                        this.vy = -this.vy
+                    }
+                    if (this.type2 > 1) {
+                        switch (this.type) {
+                            case 1:
+
+                                break;
+                            case 2:
+                                ctx.arc(this.x, this.y, this.size * lw * this.padding, 0, Math.PI * 2);
+                                break;
+                            default:
+
+                                ctx.fillRect(this.x, this.y, this.size * lw * this.padding, this.size * lw *
+                                    this.padding);
+
+                                break;
+                        }
+
+                    } else {
+                        switch (this.type) {
+                            case 1:
+                                for (j = 0; j < this.size; j++) {
+                                    if (j < this.size / 2) {
+                                        var w = j / this.size * 2 * this.size * lw * this.padding;
+                                        var x = this.x + (this.size * lw * this.padding - w) / 2
+                                    } else {
+                                        var w = (this.size - j) / this.size * 2 * this.size * lw * this.padding;
+                                        var x = this.x + (this.size * lw * this.padding - w) / 2
+                                    }
+                                    var y = this.y + lw * this.padding * j;
+                                    ctx.fillRect(x, y, w, lw);
+                                }
+                                break;
+                            case 2:
+                                for (j = 0; j < this.size; j++) {
+                                    if (j < this.size / 2) {
+                                        var arcos = Math.acos((this.size / 2 - j) / this.size * 2)
+                                        var w = Math.sin(arcos) * this.size * lw * this.padding
+                                        var x = this.x + (this.size * lw * this.padding - w) / 2
+                                    } else {
+                                        var arcos = Math.acos((j - this.size / 2) / this.size * 2)
+                                        var w = Math.sin(arcos) * this.size * lw * this.padding
+                                        var x = this.x + (this.size * lw * this.padding - w) / 2
+                                    }
+
+                                    var y = this.y + lw * this.padding * j;
+                                    ctx.fillRect(x, y, w, lw);
+                                }
+                                break;
+                            default:
+                                for (j = 0; j < this.size; j++) {
+                                    var x = this.x;
+                                    var y = this.y + lw * this.padding * j;
+                                    ctx.fillRect(x, y, this.size * lw * this.padding, lw);
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+        }
+        for (var j = 0; j < grid*2; j++) {
+            for (var k = 0; k < grid*5; k++) {
+                iClip = {
+                    x: Math.random()*w,//w / grid * k+Math.round(j%2)*w/grid/2,
+                    y: Math.random()*h,//h / grid / 2 * j,
+                    x0: Math.random() * (w - w / grid),
+                    y0: Math.random() * (h - h / grid),
+                    ww: w / grid*Math.random(),//+w/grid/2,
+                    hh: h / grid,
+                    draw() {
+                        ctx2.save();
+                        ctx.beginPath();
+                        ctx2.moveTo(this.x, this.y + this.ww / 2);
+                        ctx2.lineTo(this.x + this.ww / 2, this.y);
+                        ctx2.lineTo(this.x + this.ww, this.y + this.ww / 2);
+                        ctx2.lineTo(this.x + this.ww / 2, this.y + this.ww);
+                        ctx2.closePath();
+                        ctx2.clip();
+                        ctx2.drawImage(canvas, this.x0, this.y0, this.ww, this.ww, this.x, this.y, this.ww,
+                            this.ww);
+                        ctx2.restore();
+                    }
+                }
+                clipRect.push(iClip)
+            }
+        }
+        animate();
+    }
+
+    var grid = 4;
+
+    function draw() {
+        for (var i = 0; i < objects; i++) {
+            obj[i].draw()
+        }
+        for (var j = 0; j < clipRect.length; j++) {
+            clipRect[j].draw()
+
+        }
+    }
+
+    function animate() {
+        clear();
+        draw();
+         //window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        // ctx.clearRect(0, 0, w, h)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+</script>
+
+<body>
+
+</body>
+
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <script id='fshader' type="x-shader/x-fragment">
+        uniform float time;
+        uniform float size;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D texture3;
+        varying vec2 mv;
+
+        void main(){
+            vec4 image2 = texture2D(texture3, mv);
+            vec2 vv = mv;
+            vec2 vv1 = mv;
+            vv1.y -= vv1.x / 5.;
+            vv1.x += cos(vv1.x * 20. + time) / 30.;
+            vv1.x += fract(cos(vv1.x * 3.)) / 60.;
+            vec4 image = texture2D(texture2, vv1);
+            vec2 vv2 = mv;
+            vv2.y = fract(vv2.y * 4.);
+            //vv2 = floor(vv2 * 40.) / 40.;
+            vec4 video = texture2D(texture1, vv2);
+           
+            vv = fract (vv * 100.);
+            float l = length(vv - .5);
+            float s = step((1. - ( video.r )   ) * .8 , l) ;
+            gl_FragColor = vec4(vec3(image2.r + 1. - image.r , image2.r  + 1. - image.r, s * image.r), 1.);
+        }
+    </script>
+    <script id='vshader' type="x-shader/x-vertex">
+        uniform float time;
+        varying vec2 mv;
+        void main(){
+            mv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        }
+    </script>
+    <style>
+
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+    <video style="display: none" loop id='video' src='/video/eyes.mp4'></video>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        //document.body.appendChild(canvas);
+        var ctx = canvas.getContext('2d');
+        ctx.textAlign = "center";
+        ctx.font = 'bold ' + h / 4 + 'px arial';
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'black';
+        var txt = ["BEHIND", "BLUE", "EYES"];
+        for (let i = 0; i < 3; i++) {
+            ctx.fillText(
+                txt[i],
+                w / 2,
+                h / 2.2 + h / 4 * i,
+            )
+        }
+
+        var canvas2 = document.createElement('canvas');
+        canvas2.width = w;
+        canvas2.height = h;
+        //document.body.appendChild(canvas);
+        var ctx2 = canvas2.getContext('2d');
+        ctx2.strokeStyle = 'white';
+        ctx2.fillStyle = 'white';
+        var u = 7;
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < u; j++) {
+                if (rSeed(100) > 60) {
+                    let x = w / (u + 1) + j * w / (u + 1);
+                    let y = h / 8 + i * h / 4;
+                    for (let jj = 0; jj < rSeed(3); jj++) {
+                        ctx2.beginPath();
+                        ctx2.arc(
+                            x,
+                            y,
+                            h / 10 * random(.2, 1.),
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx2.stroke();
+                        let l = random(h / 40, h / 20);
+                        for (let kk = 0; kk < 4; kk++) {
+                            ctx2.moveTo(
+                                x,
+                                y
+                            );
+                            let angle = kk * Math.PI / 2;
+
+                            ctx2.lineTo(
+                                x + Math.cos(angle) * l,
+                                y + Math.sin(angle) * l
+                            );
+                            ctx2.stroke();
+                        }
+                    }
+                }
+            }
+        }
+
+        var scene;
+        var camera;
+        var renderer;
+
+        if (ctx) {
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+            camera.position.z = 78;
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(w, h);
+            document.body.appendChild(renderer.domElement);
+            renderer.domElement.onclick = function () {
+                video.play()
+            };
+            var video = document.getElementById('video');
+
+
+
+            var vid = new THREE.VideoTexture(document.getElementById('video'));
+
+            var geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+            var tex = new THREE.CanvasTexture(canvas);
+            var tex2 = new THREE.CanvasTexture(canvas2);
+            var uniforms = {
+                time: {
+                    type: 'f',
+                    value: 0,
+                },
+                'texture1': {
+                    value: vid
+                },
+                'texture2': {
+                    value: tex
+                },
+                'texture3': {
+                    value: tex2
+                },
+                size: {
+                    value: 0
+                }
+            };
+            var material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: document.getElementById('vshader').textContent,
+                fragmentShader: document.getElementById('fshader').textContent,
+            });
+            var plane = new THREE.Mesh(geometry, material);
+            scene.add(plane);
+            var square = [];
+            animate()
+
+        }
+
+
+
+
+
+
+        function animate() {
+
+            renderer.render(scene, camera);
+
+            if (time == 0) {
+                for (let i = 0; i < 4; i++) {
+                    square[i] = {
+                        x: 0,
+                        y: 0,
+                    }
+                    square[i].x = rSeed(2);
+                    square[i].y = rSeed(2);
+                }
+            }
+            ctx.font = h / 20 + 'px arial';
+            //ctx.drawImage(renderer.domElement, 0, 0);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = "red";
+            ctx.fillStyle = "red";
+            // for (let i = 0; i < 4; i++) {
+            //     ctx.fillText(
+            //         square[i].x,
+            //         w / 8 + w / 4 * square[i].x + w / 32,
+            //         w / 8 + h / 4 * square[i].y + w / 16,
+            //     )
+            //     ctx.strokeRect(
+            //         w / 8 + w / 4 * square[i].x,
+            //         h / 8 + h / 4 * square[i].y,
+            //         w / 4,
+            //         h / 4,
+
+            //     )
+
+            // }
+
+
+
+
+
+            requestAnimationFrame(animate);
+            uniforms.time.value = time;
+            time += .01;
+        }
+    </script>
+
+</body>
+
+</html>

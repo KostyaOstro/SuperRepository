@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<script>
+    var ctx, w, h, time, canvas, canvas2, ctx2, image;
+    var miniCanvas = [];
+    var mctx = [];
+    w = 800;
+    h = 800;
+    time = 0;
+    window.onload = canvasInit;
+    var string;
+
+    function canvasInit() {
+        canvas = document.createElement("canvas");
+        canvas.height = h;
+        canvas.width = w;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        canvas2 = document.createElement("canvas");
+        canvas2.height = h;
+        canvas2.width = w;
+        document.body.appendChild(canvas2);
+        ctx2 = canvas2.getContext("2d");
+        image = new Image();
+        string = new String("randomness");
+        var source = [
+            "flower2.jpg",
+            "arch.jpg",
+            "pion.jpg",
+            "1.jpg",
+            "22.jpg",
+            "33.jpg",
+            "333.jpg",
+            "striped-carnation-flower-meaning.jpg",
+            "sss1.jpg",
+            "sss2.jpg"
+        ];
+        image.src = "images/" + source[rSeed(source.length - 1)];
+        ctx2.save();
+
+        image.onload = function () {
+            ctx.drawImage(image, 0, 0);
+            clipMachine.init();
+            animate()
+        };
+    }
+
+    function update() {
+        clipMachine.draw()
+    }
+    var clipMachine = {
+        clips: (20, 300),
+        x: [],
+        y: [],
+        w: [],
+        h: [],
+        type: [],
+        vx: [],
+        vy: [],
+        init() {
+            for (i = 0; i < this.clips; i++) {
+                this.x[i] = random(0, w);
+                this.y[i] = random(0, h);
+                this.w[i] = random(w / random(20, 100), w / random(2, 10));
+                this.h[i] = random(h / 6, h / 2);
+                this.type[i] = rSeed(5);
+                this.vx[i] = random(-1, 1);
+                this.vy[i] = random(-1, 1);
+                initCanvas(i, this.w[i], this.w[i]);
+
+                switch (rSeed(2)) {
+                    case 1:
+                        var region = new Path2D();
+                        var padding = random(this.w[i] / 6, this.w[i] / 2);
+                        region.rect(0, 0, this.w[i], this.w[i]);
+                        region.rect(padding, padding, this.w[i] - padding * 2, this.w[i] - padding * 2);
+                        mctx[i].clip(region, 'evenodd');
+                        break;
+                    case 2:
+                        var region = new Path2D();
+                        region.arc(this.w[i] / 2, this.w[i] / 2, this.w[i] / 2, 0, Math.PI * 2);
+                        mctx[i].clip(region, 'evenodd');
+                        break;
+                    default:
+                        var padding = random(this.w[i] / 6, this.w[i] / 2)
+                        var region = new Path2D();
+                        region.arc(this.w[i] / 2, this.w[i] / 2, this.w[i] / 2, 0, Math.PI * 2);
+                        region.arc(this.w[i] / 2, this.w[i] / 2, this.w[i] / 2 - padding / 2, 0, Math.PI * 2);
+                        mctx[i].clip(region, 'evenodd');
+                        break;
+                }
+
+
+
+
+
+
+
+
+
+
+                mctx[i].drawImage(
+                    canvas,
+                    this.x[i] - this.w[i] / 2,
+                    this.y[i] - this.w[i] / 2,
+                    this.w[i],
+                    this.w[i],
+                    0,
+                    0,
+                    this.w[i],
+                    this.w[i]
+                )
+                if (rSeed(3) > 2) {
+                    var stripes = random(10, 100);
+                    for (j = 0; j < stripes; j++) {
+                        mctx[i].fillStyle = 'white';
+                        mctx[i].fillRect(this.w[i] / stripes * j, 0, this.w[i] / stripes / 2, this.w[i])
+                    }
+                }
+                ctx2.restore();
+                ctx2.save();
+
+            }
+        },
+        draw() {
+            for (i = 0; i < this.clips; i++) {
+                var gco = [
+                    "screen",
+                    "lighter",
+                    "multiply",
+                    "overlay",
+                    "darken",
+                    "lighten"
+                ]
+
+
+                ctx2.globalCompositeOperation =  gco[(this.type[i])];
+
+
+
+                ctx2.drawImage(
+                    miniCanvas[i],
+                    this.x[i] - this.w[i] / 2 + this.vx[i] * Math.sin(time / 50 + i / 50) * w / 4,
+                    this.y[i] - this.w[i] / 2 + this.vy[i] * Math.sin(time / 50 + i / 50) * w / 4,
+                )
+                ctx2.restore();
+                ctx2.save();
+                // ctx2.fillStyle='white';
+                // ctx2.font = 'bold ' + w/6 + 'px arial';
+                // ctx2.textAlign = "center";
+                // ctx2.fillText('HELLO', w / 2, w / 2)
+            }
+        }
+    }
+
+    function clear() {
+        ctx.fillStyle = "rgba(255,255,255,1)";
+        ctx.fillRect(0, 0, w, h);
+        ctx2.fillStyle = "rgba(255,255,255,0.01)";
+        ctx2.fillRect(0, 0, w, h)
+    }
+
+    function animate() {
+        update();
+        window.requestAnimationFrame(animate)
+        time++
+    }
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    }
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    }
+
+    function initCanvas(index, h, w) {
+        miniCanvas[index] = document.createElement("canvas");
+        miniCanvas[index].height = h;
+        miniCanvas[index].width = w;
+        //document.body.appendChild(miniCanvas[index]);
+        mctx[index] = miniCanvas[index].getContext("2d");
+
+    }
+</script>
+
+<body>
+
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        var canvas, ctx;
+        var w = h = 1024;
+        var gsc;
+        var time = 0;
+
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+            flame.init();
+            animate();
+        }
+        var flame = {
+            num: 600,
+            step:20,
+            x0: w / 2,
+            y0: h * 2 / 3,
+            maxL: 2,
+            x: [],
+            y: [],
+            r: w / 4,
+            l: [],
+            h: [],
+            s:[],
+            s2:[],
+            timer: [],
+            type:[],
+            trigger: [],
+            init() {
+                for (let i = 0; i < this.num; i++) {
+                    var offset = random(-1, 1);
+                    this.x[i] = offset * this.r / 2 + this.x0;
+
+                    this.l[i] = (1 - Math.abs(offset)) * this.maxL * this.r+random(-20,20);
+                    this.y[i] = this.y0 - random(10, this.l[i]);
+                    this.trigger[i] = 0;
+                    this.s[i]=random(0.5,2);
+                    this.s2[i]=random(0,1);
+                    this.timer[i] = this.l[i] * random(0, 1);
+                    this.h[i] = 100;
+                    this.type[i] = rSeed(1);
+                }
+            },
+            draw() {
+                for (let i = 0; i < this.num; i++) {
+
+                    //this.l[i] =this.l[i]+ Math.cos(time / 50 + i / this.num ) * this.r;
+                    //this.x[i] += Math.cos(time / 50 + i / this.num * 5) * this.s2[i]*0.5;
+                    // if (this.trigger[i] < this.l[i]) {
+                    //     this.y[i] -= 1;
+                    // } else {
+                    //     this.h[i] -= 1
+                    // }
+                    this.y[i] -= 1;
+                    if (this.trigger[i] > this.l[i]) {
+                        this.y[i] = this.y0;
+                        this.trigger[i] = 0;
+                        this.h[i] = 100;
+                    }
+                    // if ((this.y[i] + this.h[i]) > this.y0) {
+                    //     var h = this.y[i] - this.y0
+                    // } else {
+                    //     var h = this.h[i]
+                    // }
+                    switch (this.type[i]) {
+                        case 1:
+                            ctx.beginPath();
+                            ctx.arc(
+                                this.x[i],
+                                this.y[i],
+                                this.step/2,
+                                0,
+                                Math.PI * 2
+                            )
+                            ctx.stroke();
+                            break;
+                        default:
+                        ctx.fillStyle="black";
+                            ctx.fillRect(
+                                this.x[i],
+                                this.y[i],
+                                this.step,
+                                this.step
+                            )
+                    }
+
+                    this.trigger[i]+=1;
+                }
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle="rgba(255,255,255,0.1)";
+            ctx.clearRect(0, 0, w, h);
+            flame.draw();
+            var raf = requestAnimationFrame(animate);
+
+            time++
+        };
+
+        function rColor(s) {
+            var seed = Math.round(Math.random() * 4);
+            var color = [];
+            color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+            color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+            color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+            color[3] = ["#999", "#777", "#555", "#333", "#111"];
+            color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+            color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+            var rgb = color[s][seed];
+            return rgb;
+        };
+
+        function random(minR, maxR) {
+            var r = minR + (maxR - minR) * Math.random();
+            return r
+        };
+
+        function rSeed(value) {
+            var seed = Math.round(Math.random() * value);
+            return seed
+        };
+
+        function dist(x1, y1, x2, y2) {
+            var dx = Math.abs(x1 - x2);
+            var dy = Math.abs(y1 - y2);
+            var d = Math.max(dx, dy);
+            return d
+        }
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

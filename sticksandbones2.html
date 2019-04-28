@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+</head>
+
+<style>
+    * {
+        margin: 0px;
+        padding: 0px;
+        font-family: 'Bungee';
+    }
+</style>
+<script>
+    var canvas, ctx, canvas2, ctx2;
+    var w = 1200;
+    var h = 1200;
+    var time = 0;
+    var globalSeedColor;
+    var bg;
+    var x = 0;
+    var y = 0;
+    window.onload = function () {
+        globalSeedColor = Math.round(Math.random() * 5);
+        canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+        var bg = rColor(globalSeedColor);
+        ctx.strokeStyle = rColor(globalSeedColor);
+        pattern.init();
+        animate();
+    }
+
+    var pattern = {
+        unitX: 30,
+        unitY: 5,
+        x: [],
+        y: [],
+        w: [],
+        h: [],
+        type: [],
+        form: [],
+        color: [],
+        init() {
+            for (var j = 0; j < this.unitY; j++) {
+                console.log(j);
+
+                for (var k = 0; k < this.unitX / 2; k++) {
+
+                    var i = this.unitX * j + k * 2;
+                    this.color[i] = rColor(globalSeedColor);
+                    this.color[i + 1] = this.color[i];
+
+                    this.type[i] =0;// Math.round(Math.random() * 2);
+                    this.type[i + 1] =0;//Math.round(Math.random() * 2);
+
+                    this.form[i] = Math.round(Math.random() * 2);
+                    this.form[i + 1] = Math.round(Math.random() * 2);
+
+                    this.w[i] = Math.round(w / this.unitX * 2 * Math.random());
+                    this.w[i + 1] = Math.round(w / this.unitX * 2 - this.w[i]);
+                    this.w[i] *=0.8;
+                    this.w[i+1] *=0.8;
+
+                    this.h[i] = h / this.unitY/3;// Math.random() * h / this.unitY / 2 + h / this.unitY / 2;
+                    this.y[i] = h / this.unitY * j + h / this.unitY / 2;
+                    this.x[i] = w / this.unitX * k * 2;
+
+                    this.h[i + 1] =h / this.unitY/3; //Math.random() * h / this.unitY / 2 + h / this.unitY / 2;
+                    this.y[i + 1] = h / this.unitY * j + h / this.unitY / 2;
+                    this.x[i + 1] = this.x[i] + this.w[i];
+
+                }
+            }
+        },
+        draw() {
+            for (var i = 0; i < this.unitX * this.unitY; i++) {
+                var k1 = Math.abs(Math.sin(time / 50 + i / this.unitY));
+                var k2 = Math.abs(Math.sin(time / 50 + i / this.unitY));
+                var k3 = Math.abs(Math.sin(time / 50 + this.x[i] / this.unitX));
+                var k4 = Math.abs(Math.cos(time / 50 + this.x[i] / this.unitX));
+
+                //this.h[i] =k1*k2* h / this.unitY;
+              
+                //this.x[i]+=time/600+Math.abs(Math.cos(this.y[i]/this.x.length));
+                //if(this.x[i]+this.w[i]/2>=w){this.x[i]-=w}
+                //var d = dist(this.x[i], this.y[i], x, y);
+               // this.h[i] = h / this.unitY / d * 20 + k1 * k2 * h / this.unitY / 2;
+          
+                if (this.form[i] > 1) {
+                    if (this.type[i] > 1) {
+                        ctx.strokeStyle = this.color[i];
+                        ctx.strokeRect(this.x[i], this.y[i] - this.h[i] / 2, this.w[i], this.h[i]);
+                    } else {
+                        ctx.fillStyle = this.color[i]; //Math.floor(i / this.unitX)];
+                        ctx.fillRect(this.x[i], this.y[i] - this.h[i] / 2, this.w[i], this.h[i]);
+                    }
+                } else {
+                    var p = [];
+                    p[0] = {
+                        x: this.x[i],
+                        y: this.y[i] - this.h[i] / 2
+                    }
+                    p[1] = {
+                        x: this.x[i] + this.w[i],
+                        y: this.y[i]
+                    }
+                    p[2] = {
+                        x: this.x[i],
+                        y: this.y[i] + this.h[i] / 2
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(p[0].x, p[0].y);
+                    ctx.lineTo(p[1].x, p[1].y);
+                    ctx.lineTo(p[2].x, p[2].y);
+                    ctx.closePath();
+                    if (this.type[i] > 1) {
+                        ctx.strokeStyle = this.color[i];
+                        ctx.stroke()
+                    } else {
+                        ctx.fillStyle = this.color[i]; //Math.floor(i / this.unitX)];
+                        ctx.fill()
+                    }
+                }
+
+            }
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+        pattern.draw()
+    }
+
+    function dist(x, y, x1, y1) {
+        var dx = x - x1;
+        var dy = y - y1;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        return d
+    }
+
+    function animate() {
+        //clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        ctx.clearRect(0, 0, w, h)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 6);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+    document.addEventListener('mousemove', mmm);
+
+    function mmm(e) {
+        e = event || window.event;
+        x = event.clientX;
+        y = event.clientY;
+        if (x > w) {
+            x = w
+        };
+        if (y > h) {
+            y = h
+        };
+        //console.log(x, y)
+    };
+</script>
+
+<body>
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px
+        }
+    </style>
+    <script>
+        var ctx, w, h, ctx2, mctx, canvas;
+        var time = 0;
+        var segments = 30;
+        var angle;
+        var clip;
+        var recList = 100;
+        var rec = [];
+        var gip, sin;
+
+        var inMemoryCanvas;
+
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+            canvas.setAttribute("id", "canvas");
+            canvas = document.getElementById("canvas");
+            w = 800;
+            h = 800;
+            canvas.width = w;
+            canvas.height = h;
+
+
+            var canvas2 = document.createElement("canvas");
+            document.body.appendChild(canvas2);
+            canvas2.width = w * 2;
+            canvas2.height = h * 2;
+            ctx2 = canvas2.getContext("2d");
+
+
+
+
+            angle = Math.PI * 2 / segments;
+            gip = w / Math.cos(angle);
+            sin = Math.abs(Math.sin(angle) * gip);
+            for (i = 0; i < recList; i++) {
+
+                rec[i] = {
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    s: Math.round(Math.random() * 50) + 3,
+                    a1: Math.round(Math.random() * 60) / 60 - 1,
+                    a2: Math.round(Math.random() * 60) / 60 - 1,
+                    c: rColor()
+                }
+            }
+
+            animate();
+        }
+
+        function clearFrame() {
+            //ctx.clearRect(0, 0, w, h);
+            ctx2.clearRect(0, 0, w * 2, h * 2)
+
+        }
+
+        function recConstruct(x, y, s, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, s, s);
+        }
+
+        function draw() {
+            ctx.restore();
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(w, 0);
+            ctx.lineTo(w, sin);
+            ctx.closePath();
+            //ctx.stroke();
+            ctx.clip();
+            ctx.fillStyle = "black";
+
+            for (i = 0; i < recList; i++) {
+                if (rec[i].x > w || rec[i].x < 0) {
+                    rec[i].a1 = -rec[i].a1
+                }
+                if (rec[i].y > sin || rec[i].y < 0) {
+                    rec[i].a2 = -rec[i].a2
+                }
+                var x = rec[i].a1 + rec[i].x;
+                var y = rec[i].a2 + rec[i].y;
+                recConstruct(x, y, rec[i].s, rec[i].c);
+                rec[i].x = x;
+                rec[i].y = y;
+            }
+
+
+
+
+            for (j = 0; j < segments; j++) {
+                ctx2.restore();
+                ctx2.save();
+                ctx2.translate(w, h);
+                var size = Math.abs(Math.cos(j * Math.PI / 2)) * 0.1 + 0.5
+                ctx2.scale(size, size);
+                ctx2.rotate(angle * j);
+                ctx2.drawImage(canvas, 0, 0);
+            }
+
+
+
+            /*for (j = 0; j < segments; j++) {
+                 ctx2.restore();
+                 ctx2.save();
+                 //ctx2.translate(w + Math.cos(angle * j) * 15 * j, h + Math.sin(angle * j) * 15 * j);
+                 
+                 ctx2.translate(w , h );
+                 ctx2.scale(0.5, 0.5);
+                 ctx2.translate(Math.cos(angle) * 15/2, Math.sin(angle) * 15/2);
+                 ctx2.rotate(angle * j);
+                 
+                 //ctx2.scale(1 - 0.05 * j, 1 - 0.05 * j);
+                 ctx2.drawImage(canvas, 0, 0);
+
+             }*/
+
+
+        }
+
+        function rColor() {
+            var seed = Math.round(Math.random() * 6);
+            switch (seed) {
+                case 1:
+                    var rgb = 'white';
+                    break;
+                case 3:
+                    var rgb = 'black';
+                    break;
+                case 4:
+                    var r = Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var g = 0;//Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var b = Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var rgb = "rgb(" + r + "," + g + "," + b + ")";
+                    break;
+                default:
+                    var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var g = Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var b = Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var rgb = "rgb(" + r + "," + g + "," + b + ")";
+                    break;
+
+            }
+
+            return rgb;
+        }
+
+        function animate() {
+            clearFrame();
+            draw(time);
+            window.requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</head>
+<script src="javascripts/three.js"></script>
+
+
+
+
+
+<body>
+    <script>
+
+    </script>
+
+</body>
+
+</html>

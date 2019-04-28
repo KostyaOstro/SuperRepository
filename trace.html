@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        var ctx, w, h, time, canvas, canvas2, ctx2;
+        w = 800;
+        h = 800;
+        time = 0;
+        var x = w / 2;
+        var fontSize = h / 6;
+        window.onload = canvasInit;
+
+        function canvasInit() {
+            canvas = document.createElement("canvas");
+            canvas.height = h;
+            canvas.width = w;
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+
+            canvas2 = document.createElement("canvas");
+            canvas2.height = h;
+            canvas2.width = w;
+            //document.body.appendChild(canvas2);
+            ctx2 = canvas2.getContext("2d");
+            ctx.font = 'bold ' + fontSize + 'px arial';
+            ctx.textAlign = "center";
+            dot.init()
+
+            animate()
+        }
+        var dot = {
+            instance: 200,
+            x: [],
+            y: [],
+            r: [],
+            vx: [],
+            vy: [],
+            timer: [],
+            trigger: [],
+            size: [],
+            init() {
+                for (i = 0; i < this.instance; i++) {
+                    this.x[i] = Math.random() * w;
+                    this.y[i] = Math.random() * h;
+                    this.r[i] = Math.random() * 2 + 1;
+                    this.vx[i] = Math.random() - 0.5;
+                    this.vy[i] = Math.random() - 0.5;
+                    this.size[i] = Math.random() * 20;
+                }
+            },
+            draw() {
+                for (i = 0; i < this.instance; i++) {
+                    if (i == Math.round(this.instance / 2)) {
+                        
+                        var r =186-Math.cos(time/20)*64;
+                        var g = 186-Math.cos(time/50)*64;
+                        var b =186-Math.cos(time/47)*64;
+                        ctx.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
+                        ctx.lineWidth=12*Math.cos(time/60)+14;
+                        ctx.strokeText('FIBRE', w / 2, h / 2 - fontSize / 2);
+                        ctx.strokeText('OF YOUR', w / 2, h / 2 + fontSize / 2);
+                        ctx.strokeText('SOUL', w / 2, h / 2 + fontSize*3/2 ); //+Math.cos(time/50)*h/6);
+                        
+                    }
+                    var r = 64 + Math.cos(time / 30 + this.y[i] / w) * 64;;
+                    var g = 164 + Math.cos(time / 80 + i / this.instance) * 64;
+                    var b = 164 + Math.cos(time / 100 + this.x[i] / w) * 64;
+                    ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+                    this.r[i] = Math.abs(Math.cos(time / 60 + i / this.instance) * this.size[i]) + 3;
+                    this.x[i] += this.vx[i];
+                    this.y[i] += this.vy[i];
+                    if (this.x[i] > w || this.x[i] < 0) {
+                        this.vx[i] *= -1
+                    };
+                    if (this.y[i] > w || this.y[i] < 0) {
+                        this.vy[i] *= -1
+                    };
+                    ctx.beginPath();
+                    ctx.arc(this.x[i] - this.r[i] / 2, this.y[i] - this.r[i] / 2, this.r[i], 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.fill()
+                }
+            }
+        }
+
+        function update() {
+            //clear();
+            //ctx.translate(-0.5, 0);
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(canvas2, 0, 0);
+            // var fontSize=h/4;
+            // ctx.font='bold '+fontSize+'px arial';
+            // ctx.fillText('HELLO',w/8,h/2-fontSize/2+Math.cos(time/50)*h/6);
+            dot.draw();
+            //ctx.fillRect(x, h / 2, 50, 50);
+            ctx2.drawImage(canvas, 0, 1);
+        }
+
+        function clear() {
+            ctx.fillStyle = "rgba(255,255,255,1)";
+            ctx.fillRect(0, 0, w, h);
+            ctx2.fillStyle = "rgba(255,255,255,0.01)";
+            ctx2.fillRect(0, 0, w, h)
+        }
+
+        function animate() {
+            update();
+            window.requestAnimationFrame(animate)
+            time++
+        }
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

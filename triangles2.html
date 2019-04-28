@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Bungee" rel="stylesheet">
+</head>
+
+<style>
+    * {
+        margin: 0px;
+        padding: 0px;
+        font-family: 'Bungee';
+    }
+</style>
+<script>
+    var text, ctx, image, data, canvas, canvas2;
+    var w = 100;
+    var h = 100;
+    var xScale=10;
+    var time = 0;
+    var pixel = [];
+    window.onload = function () {
+        canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        text = canvas.getContext("2d");
+        text.beginPath();
+        text.rect(0, 0, w, h);
+        text.stroke();
+
+
+        canvas2 = document.createElement('canvas');
+        canvas2.width = w * xScale;
+        canvas2.height = h * xScale;
+        document.body.appendChild(canvas2);
+        ctx = canvas2.getContext("2d");
+        ctx.beginPath();
+        ctx.rect(0, 0, w * xScale, h * xScale);
+        ctx.stroke();
+        var photo = new Image();
+        photo.src = 'images/tex.png';
+        photo.onload = function () {
+            text.drawImage(photo, 0, 0, w, h);
+            var fontSize = 15;
+            var lineHeight = fontSize;
+            text.font = fontSize + "px Bungee";
+            // text.fillStyle = "white";
+            // text.fillRect(0, 0, w, h);
+            text.fillStyle = "Black";
+            text.fillText("ALL ", 10, lineHeight);
+            text.fillText("GENERATE", 10, lineHeight * 2);
+            text.fillText("ART AT:", 10, lineHeight * 3);
+            text.fillText("kOstroDesign", 10, lineHeight * 4);
+            ctx.drawImage(canvas, 0, 0, w * xScale, h * xScale)
+            text.fillRect(0, 0, 5, 5)
+            image = text.getImageData(0, 0, w, h);
+            data = image.data;
+
+
+            animate();
+        }
+
+
+    }
+
+    function draw() {
+
+        for (i = 0; i < h; i++) {
+            for (j = 0; j < w; j++) {
+                var index = j * 4 + i * 4 * w;
+                var value = (256 - data[index]) / 256;
+
+
+                var x = j * xScale+Math.sin(time/50+index/w/h)*20 ;//xScale+Math.cos(time/50+index/100)*3;
+                var y = i * xScale+Math.sin(time/50+index/w/h)*20;
+                var side=value*xScale*0.8;//*0.6*Math.abs(Math.sin(time/50+index/w/h))+xScale/5;
+                ctx.fillRect(x,y,side,side)
+
+
+
+
+
+            }
+
+        }
+
+    }
+
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+       // ctx.clearRect(0, 0, w * xScale, h *xScale)
+        ctx.clearRect(0, 0, w * xScale, h *xScale)
+    }
+
+    function rColor() {
+        var seed = Math.round(Math.random() * 6);
+        switch (seed) {
+            case 1:
+                var r = Math.round(Math.random() * 128) + 128;
+                var g = Math.round(Math.random() * 128) + 128;
+                var b = 0;
+                break;
+            case 2:
+                var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var g = Math.round(Math.random() * 128) + 128;
+                var b = Math.round(Math.random() * 128) + 128;
+            default:
+                var r = Math.round(Math.random() * 128) + 128;
+                var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var b = Math.round(Math.random() * 128) + 128;
+                break;
+        }
+        var rgb = "rgba(" + r + "," + g + "," + b + ",0.7)";
+        return rgb;
+    }
+</script>
+
+<body>
+    hello
+</body>
+
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px
+        }
+    </style>
+    <script>
+        var ctx, ctx2, ctx3, drawingCanvas, drawingCanvas2, drawingCanvas3;
+        var time = 0;
+        var sColor = 'white';
+        var bgL=20;
+        var bgColor=rBgColor();
+        var lw=1;
+        var circleSkeleton=1;
+
+        var man = [];
+        var grid = {
+            h: 3,
+            get v() {
+                return this.h
+            },
+            side: 500,
+            border: 30,
+            padding: 0,
+            get copies() {
+                return this.h * this.v;
+            }
+        }
+        var w, h;
+
+        window.onload = function () {
+            drawingCanvas = document.createElement('canvas');
+            //document.body.appendChild(drawingCanvas);
+            ctx = drawingCanvas.getContext("2d");
+            w = grid.h * grid.side + grid.border * 2;
+            h = grid.v * grid.side + grid.border * 2;
+            drawingCanvas.height = h;
+            drawingCanvas.width = w;
+
+            drawingCanvas2 = document.createElement('canvas');
+            //document.body.appendChild(drawingCanvas2);
+            ctx2 = drawingCanvas2.getContext("2d");
+            drawingCanvas2.height = h;
+            drawingCanvas2.width = w;
+
+            drawingCanvas3 = document.createElement('canvas');
+            document.body.appendChild(drawingCanvas3);
+            ctx3 = drawingCanvas3.getContext("2d");
+            drawingCanvas3.height = h;
+            drawingCanvas3.width = w;
+
+
+            for (ii = 0; ii < grid.v; ii++) {
+                for (jj = 0; jj < grid.h; jj++) {
+                    var Iman = {
+                        x: grid.border + jj * grid.side + grid.side / 2,
+                        y: grid.border + ii * grid.side + grid.side / 2,
+                        speed: 1,
+                        head: {
+                            length: grid.side / 20 * Math.random() + grid.side / 10,
+                            angle: rAngle(Math.PI / 4) - Math.PI / 2,
+                            speed: rAngle(0.2)+0.05,
+                            arc: rAngle(Math.PI / 2),
+                            color: rColor()
+                        },
+                        body: {
+                            length: grid.side / 20 * Math.random() + grid.side / 8,
+                            angle: rAngle(Math.PI / 4) + Math.PI / 2,
+                            arc: rAngle(Math.PI / 4),
+                            speed: rAngle(0.2)+0.05,
+                            color: [rColor(), rColor()]
+                        },
+                        arm: {
+                            length: grid.side / 10 * Math.random() + grid.side / 5,
+                            angle: [
+                                rAngle(Math.PI / 4) - Math.PI,
+                                rAngle(Math.PI / 4),
+                            ],
+                            speed: rAngle(0.2)+0.05,
+                            arc: rAngle(Math.PI / 2),
+                            color: [
+                                rColor(),
+                                rColor(),
+                                rColor(),
+                                rColor(),
+                            ]
+                        },
+                        leg: {
+                            length: grid.side / 5 * Math.random() + grid.side / 2,
+                            angle: [
+                                rAngle(Math.PI / 2)+Math.PI/4,
+                                rAngle(Math.PI / 2),
+                            ],
+                            speed: rAngle(0.4)+0.05,
+                            arc: rAngle(Math.PI / 2),
+                            color: [
+                                rColor(),
+                                rColor(),
+                                rColor(),
+                                rColor(),
+                            ]
+                        },
+                        draw: function () {
+                            construcrtMan(this)
+                        }
+                    };
+                    man.push(Iman);
+                }
+            }
+            animate();
+        };
+
+        function construcrtMan(obj) {
+            //head
+            ctx.lineWidth=lw;
+            ctx.strokeStyle = sColor;
+            var angle = obj.head.angle + Math.sin(time * obj.head.speed) * obj.head.arc;
+            // console.log(angle);
+            ctx.beginPath();
+            var x = obj.x;
+            var y = obj.y;
+            drawCircle(x, y, obj.body.length * 0.5, obj.body.color, 1);
+            ctx.moveTo(x, y);
+            var x2 = x + Math.cos(angle) * obj.head.length;
+            var y2 = y + Math.sin(angle) * obj.head.length;
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            drawCircle(x2, y2, obj.head.length * 0.6, obj.head.color, 1);
+
+            //larm
+            ctx.beginPath();
+            angle = obj.arm.angle[0] + Math.sin(time * obj.arm.speed) * obj.arm.arc;
+            x = obj.x;
+            y = obj.y;
+            ctx.moveTo(x, y);
+            x2 = x + Math.cos(angle) * obj.arm.length / 2;
+            y2 = y + Math.sin(angle) * obj.arm.length / 2;
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            drawCircle(x2, y2, obj.arm.length * 0.15, obj.arm.color[0], 2);
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            angle = (angle + Math.PI) * 2 - Math.PI;
+            x3 = x2 + Math.cos(angle) * obj.arm.length / 2;
+            y3 = y2 + Math.sin(angle) * obj.arm.length / 2;
+            ctx.lineTo(x3, y3);
+            ctx.stroke();
+            drawCircle(x3, y3, obj.arm.length * 0.07, obj.arm.color[1], 2);
+
+            //rarm
+            angle = -obj.arm.angle[1] + Math.sin(time * obj.arm.speed) * obj.arm.arc;
+            ctx.beginPath();
+            x = obj.x;
+            y = obj.y;
+            ctx.moveTo(x, y);
+            x2 = x + Math.cos(angle) * obj.arm.length / 2;
+            y2 = y + Math.sin(angle) * obj.arm.length / 2;
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            drawCircle(x2, y2, obj.arm.length * 0.15, obj.arm.color[2], 2);
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            angle = angle * 2;
+            x3 = x2 + Math.cos(angle) * obj.arm.length / 2;
+            y3 = y2 + Math.sin(angle) * obj.arm.length / 2;
+            ctx.lineTo(x3, y3);
+            ctx.stroke();
+            drawCircle(x3, y3, obj.arm.length * 0.07, obj.arm.color[3], 2);
+
+
+            //body
+            angle = obj.body.angle + Math.sin(time * obj.body.speed) * obj.body.arc;
+            // console.log(angle);
+            ctx.beginPath();
+            x = obj.x;
+            y = obj.y;
+            ctx.moveTo(x, y);
+            x2 = x + Math.cos(angle) * obj.body.length;
+            y2 = y + Math.sin(angle) * obj.body.length;
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            drawCircle(x2, y2, obj.body.length * 0.4, obj.body.color, 1);
+
+            //lleg
+            angle1 = obj.leg.angle[0] + Math.sin(time * obj.leg.speed) * obj.leg.arc + angle;
+            angle2 = obj.leg.angle[1] + Math.sin(time * obj.leg.speed) * obj.leg.arc + angle;
+            ctx.beginPath();
+            xl = x2;
+            yl = y2;
+            ctx.moveTo(xl, yl);
+            x2 = xl + Math.cos(angle1) * obj.arm.length / 2;
+            y2 = yl + Math.sin(angle1) * obj.arm.length / 2;
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            drawCircle(x2, y2, obj.arm.length * 0.15, obj.leg.color[0], 2);
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            angle1 = (angle1 + Math.PI * 3 / 2) * 2 - Math.PI * 3 / 2;
+            x3 = x2 + Math.cos(angle) * obj.arm.length / 2;
+            y3 = y2 + Math.sin(angle) * obj.arm.length / 2;
+            ctx.lineTo(x3, y3);
+            ctx.stroke();
+
+            drawCircle(x3, y3, obj.arm.length * 0.07, obj.leg.color[1], 2);
+
+
+
+
+            //rleg
+            ctx.beginPath();
+            ctx.moveTo(xl, yl);
+            x2 = xl + Math.cos(angle2) * obj.arm.length / 2;
+            y2 = yl + Math.sin(angle2) * obj.arm.length / 2;
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            drawCircle(x2, y2, obj.arm.length * 0.15, obj.leg.color[2], 2);
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            angle2 = (angle2 + Math.PI * 3 / 2) * 2 - Math.PI * 3 / 2;
+            x3 = x2 + Math.cos(angle2) * obj.arm.length / 2;
+            y3 = y2 + Math.sin(angle2) * obj.arm.length / 2;
+            ctx.lineTo(x3, y3);
+            ctx.stroke();
+            drawCircle(x3, y3, obj.arm.length * 0.07, obj.leg.color[3], 2);
+
+
+        }
+
+        function rAngle(value) {
+            var angle = Math.random() * value - value / 2;
+            return angle
+        }
+
+
+        function drawCircle(x, y, radius, color, r) {
+            ctx2.beginPath();
+            ctx2.fillStyle = color;
+            ctx2.arc(x, y, radius, 0, Math.PI * 2);
+            ctx2.fill();
+            ctx2.beginPath();
+            ctx2.fillStyle = sColor;
+            ctx2.arc(x, y, circleSkeleton / r, 0, Math.PI * 2);
+            ctx2.fill()
+        }
+
+        function rColor() {
+            var seed = Math.round(Math.random() * 6);
+            switch (seed) {
+                case 1:
+                    var r = Math.round(Math.random() * 128) + 64;
+                    var g = Math.round(Math.random() * 128) + 64;
+                    var b = 0;
+                    break;
+                case 2:
+                    var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var g = Math.round(Math.random() * 128) + 64;
+                    var b = Math.round(Math.random() * 128) + 64;
+                default:
+                    var r = Math.round(Math.random() * 128) + 64;
+                    var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var b = Math.round(Math.random() * 128) + 64;
+                    break;
+            }
+            var rgb = "rgba(" + r + "," + g + "," + b + ",0.7)";
+            return rgb;
+        }
+        function rBgColor() {
+            var seed = Math.round(Math.random() * 2);
+            switch (seed) {
+                case 1:
+                    var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 32)) + 32;
+                    var g = Math.round(Math.random() * bgL) + bgL;
+                    var b = Math.round(Math.random() * bgL) + bgL;
+                default:
+                    var r = Math.round(Math.random() * bgL) + bgL;
+                    var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 32)) + 32;
+                    var b = Math.round(Math.random() * bgL) + bgL;
+                    break;
+            }
+            var rgb = "rgb(" + r + "," + g + "," + b + ")";
+            return rgb;
+        }
+
+
+        function draw() {
+            for (i = 0; i < grid.copies; i++) {
+                man[i].draw()
+            }
+            ctx3.drawImage(drawingCanvas2, 0, 0);
+            ctx3.drawImage(drawingCanvas, 0, 0);
+        }
+
+        function clearFrame() {
+            ctx.clearRect(0, 0, w, h);
+            ctx2.clearRect(0, 0, w, h);
+            ctx3.clearRect(0, 0, w, h);
+            //ctx.fillStyle="rgba(255,255,255,0.1)";
+            ctx3.fillStyle = bgColor;
+            ctx3.fillRect(0, 0, w, h)
+        }
+
+        function rColor() {
+            var seed = Math.round(Math.random() * 6);
+            switch (seed) {
+                case 1:
+                    var r = Math.round(Math.random() * 128) + 64;
+                    var g = Math.round(Math.random() * 128) + 64;
+                    var b = 0;
+                    break;
+                case 2:
+                    var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var g = Math.round(Math.random() * 128) + 64;
+                    var b = Math.round(Math.random() * 128) + 64;
+                default:
+                    var r = Math.round(Math.random() * 128) + 64;
+                    var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var b = Math.round(Math.random() * 128) + 64;
+                    break;
+            }
+            var rgb = "rgba(" + r + "," + g + "," + b + ",0.7)";
+            return rgb;
+        }
+
+
+
+
+        function animate() {
+            clearFrame();
+            draw();
+            requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</head>
+<link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+<script src="javascripts/three.js"></script>
+<script src="javascripts/orbitcontrols.js"></script>
+
+<body>
+
+
+</body>
+
+</html>

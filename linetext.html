@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Maven+Pro:900" rel="stylesheet">
+</head>
+<style>
+    * {
+        font-family: 'Maven Pro', sans-serif;
+    }
+</style>
+<script>
+    var ctx, txt;
+    var xScale = 5;
+    var ws = 200;
+    var hs = 200;
+    var w = ws * xScale;
+    var h = hs * xScale;
+    var pixel = [];
+    var time = 0;
+    var lines = [];
+    var bgcolor = rColor();
+    var sumPoint = 0;
+    var plus = [];
+    var triggerPoint = [];
+    var tp = 200;
+    window.onload = function () {
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+
+
+
+        var textCanvas = document.createElement("canvas");
+        textCanvas.width = ws;
+        textCanvas.height = hs;
+        document.body.appendChild(textCanvas);
+        txt = textCanvas.getContext("2d");
+        txt.fillStyle = 'white';
+        txt.rect(0, 0, ws, hs);
+        txt.fill();
+        var fs = 40;
+        txt.font = fs + 'px Maven Pro';
+        txt.fillStyle = 'black';
+        //txt.fillText("I HAVE", 5, fs);
+        txt.fillText("GOOSE", 5, fs);
+        txt.fillText("BUMPS", 5, fs * 2);
+        txt.fillText("FROM U", 5, fs * 3);
+        txt.fillText("_____", 5, fs * 4);
+        //txt.fillText("", 5, fs*5);
+
+
+        // txt.fillText("", 15, fs*3);
+        image = txt.getImageData(0, 0, w, h);
+        data = image.data;
+        var l = 0;
+        lines[l] = [];
+
+        var gap = 1;
+
+        for (i = 0; i < tp; i++) {
+            var point = {
+                speed: 3,
+                x: Math.random() * w * xScale,
+                y: Math.random() * h * xScale,
+                r: Math.random() * 8 + 8,
+                vx: -Math.random(),
+                vy: Math.random() - 0.5,
+                timer: Math.random() * 500 + 200,
+                trigger: 0,
+                color: "rgba(256,256,256,0.5)",
+                draw() {
+
+                    // ctx.beginPath();
+                    this.x += this.vx * this.speed;
+                    this.y += this.vy * this.speed;
+                    if (this.x < 0) {
+                        this.x = w
+                    }
+                    if (this.y > h * xScale || this.y < 0) {
+                        this.y = Math.random() * h
+                    }
+                    //  ctx.arc(this.x - this.r, this.y - this.r, this.r, 0, Math.PI * 2);
+                    
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x - this.r / 2, this.y - this.r / 8, this.r, this.r / 4);
+                    //ctx.fill()
+                    ctx.fillRect(this.x - this.r / 8, this.y - this.r / 2, this.r / 4, this.r);
+                    // ctx.closePath();
+
+                    ctx.fill()
+                    this.trigger++
+                }
+            }
+            triggerPoint.push(point);
+        }
+        for (i = 0; i < hs; i++) {
+            for (j = 0; j < ws; j++) {
+                var index = j * 4 + i * 4 * w;
+                var value = data[index];
+                if (value <= 196) {
+                    gap = 0;
+                    Ipoint = {
+                        x: j,
+                        y: i,
+                        r: Math.cos(sumPoint / 20) * Math.random(),
+
+                    };
+                    lines[l].push(Ipoint);
+                    sumPoint++
+                } else {
+                    if (gap == 0) {
+                        gap = 1;
+                        l++
+                        lines[l] = [];
+                    }
+
+                }
+            }
+        }
+
+        animate();
+    }
+
+    function draw() {
+        for (ii = 0; ii < tp; ii++) {
+            triggerPoint[ii].draw();
+        };
+        var indexx = 0;
+        for (i = 0; i < lines.length; i++) {
+            ctx.strokeStyle = 'white';
+            //ctx.lineWidth=Math.abs(Math.cos(i/lines.length+time/30))*2+0.5;
+            ctx.beginPath();
+            for (j = 0; j < lines[i].length; j++) {
+                var k1 = Math.cos(j / lines[i].length * 3 + time / 50);
+                var k2 = Math.sin(j / lines[i].length * 3 + time / 50);
+                var k3 = Math.cos(i / lines.length + time / 50);
+                var k4 = k1 * k2 * k3;
+                var x = lines[i][j].x * xScale;
+                var y = lines[i][j].y * xScale + Math.cos(time / 50 + x / w * 2) * lines[i][j].r * 20;
+                if (j == 0) {
+                    ctx.moveTo(x, y)
+                } else {
+                    ctx.lineTo(x, y)
+                }
+                indexx++
+            }
+            ctx.stroke();
+        }
+
+    }
+
+    function rColor() {
+        var seed = Math.round(Math.random() * 6);
+        switch (seed) {
+            case 1:
+                var r = Math.round(Math.random() * 128) + 64;
+                var g = Math.round(Math.random() * 128) + 64;
+                var b = 0;
+                break;
+            case 2:
+                var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var g = Math.round(Math.random() * 128) + 64;
+                var b = Math.round(Math.random() * 128) + 64;
+            default:
+                var r = Math.round(Math.random() * 128) + 64;
+                var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var b = Math.round(Math.random() * 128) + 64;
+                break;
+        }
+        var rgb = "rgba(" + r + "," + g + "," + b + ",0.7)";
+        return rgb;
+    }
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        ctx.fillStyle = bgcolor;
+        ctx.fillRect(0, 0, w, h)
+        //ctx.clearRect(0,0,w,h)
+    }
+</script>
+
+<body>
+    77
+</body>
+
+</html>

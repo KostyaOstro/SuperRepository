@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var u = v = 0;
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        var ctx = canvas.getContext("2d");
+
+
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
+        });
+        renderer.setSize(w, h);
+        renderer.shadowMap.enabled = true;
+        //document.body.appendChild(renderer.domElement);
+
+        var ambientLight = new THREE.AmbientLight("blue", 1);
+        scene.add(ambientLight);
+        
+
+
+
+        var pointLight = new THREE.PointLight(new THREE.Color('white'), 2);
+        scene.add(pointLight);
+        pointLight.position.set(100, 100, 100);
+
+        var pointLight2 = new THREE.PointLight(new THREE.Color('red'), 1);
+        scene.add(pointLight2);
+        pointLight2.position.set(-100, -100, 100);
+
+        pointLight2.castShadow = true;
+        pointLight2.shadow.bias = -0.01;
+        pointLight2.shadow.radius = 60;
+
+        var envMap = new THREE.TextureLoader().load('/images/emap.png');
+        envMap.mapping = THREE.SphericalReflectionMapping;
+        var tmaterial = new THREE.MeshStandardMaterial({
+                            side: THREE.DoubleSide,
+                            flatShading: true,
+                            roughness: 0,
+                            color: 'white',
+                            envMap: envMap
+        });
+
+        
+       
+
+
+
+        pointLight.castShadow = true;
+        pointLight.shadow.bias = -0.01;
+        pointLight.shadow.radius = 60;
+        pointLight.shadow.mapSize.x = 1024;
+        pointLight.shadow.mapSize.y = 1024;
+        var all = new THREE.Object3D();
+        var path = [];
+        var tubes = {
+            copies: 16,
+            tube: [],
+            mesh: [],
+            pivot: new THREE.Object3D(),
+            init() {
+                for (let i = 0; i < this.copies; i++) {
+                    this.tube[i] = {
+                        r: random(1, 3),
+                        k: random(0.6, .9),
+                        z: random(-40, 40),
+                        a: random(0, Math.PI * 2),
+                        l: 40, //random(30, 40),
+                        w: random(40, 60),
+                        h: random(10, 30),
+
+                    }
+
+                    for (let j = 0; j < 2; j++) {
+                        var index = this.mesh.length;
+
+
+                        if (j % 2 == 0) {
+
+                            path[i] = new THREE.Path();
+                            path[i].getPoint = function gp(t) {
+
+                                let x = Math.min(t, tubes.tube[i].k) * tubes.tube[i].l;
+                                let y = Math.max(t, tubes.tube[i].k) * tubes.tube[i].l - tubes.tube[i].k *
+                                    tubes.tube[i].l;
+                                let z = tubes.tube[i].z * t;
+
+                                return new THREE.Vector3(x, y, z)
+                            };
+
+
+                        } else {
+                            path[i] = new THREE.Path();
+                            path[i].getPoint = function gp(t) {
+
+                                let x = -Math.min(t, tubes.tube[i].k) * tubes.tube[i].l;
+                                let y = Math.max(t, tubes.tube[i].k) * tubes.tube[i].l - tubes.tube[i].k *
+                                    tubes.tube[i].l;
+                                let z = tubes.tube[i].z * t;
+
+                                return new THREE.Vector3(x, y, z)
+                            };
+                        }
+
+
+
+                        geometry = new THREE.TubeBufferGeometry(
+                            path[i],
+                            20,
+                            this.tube[i].r,
+                            10,
+                            false
+                        );
+                       
+                        this.mesh[index] = new THREE.Mesh(geometry, tmaterial);
+                        this.mesh[index].rotation.x = rSeed(1) * Math.PI;
+                        this.mesh[index].position.y = random(-20, 20);
+                        this.pivot.add(this.mesh[index]);
+                        this.mesh[index].castShadow = true;
+                        this.mesh[index].receiveShadow = true;
+
+                    }
+
+                }
+                all.add(this.pivot);
+                //this.pivot.position.y = -10;
+            }
+        }
+
+        var geometry = new THREE.CylinderGeometry(
+            30,
+            30,
+            20,
+            8,
+            1,
+            true
+        );
+        var geometry2 = new THREE.CylinderGeometry(
+            25,
+            25,
+            30,
+            8,
+            1,
+            true
+        );
+        var material = new THREE.MeshStandardMaterial({
+            //wireframe: true
+            flatShading: true,
+            side: THREE.DoubleSide,
+            roughness: 0,
+            envMap: envMap
+        });
+        var material3 = new THREE.MeshStandardMaterial({
+            //color: "black",
+            flatShading: true,
+            side: THREE.DoubleSide,
+            roughness: 0,
+            envMap: envMap
+        });
+        if (ctx) {
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.ClampToEdgeWrapping;
+            tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.repeat.set(1, 5);
+            tex.center.set(.5, .5);
+            tex.rotation = -Math.PI / 2;
+            material.map = tex;
+            material.map.needsUpdate = true;
+
+        }
+        var cylinder = new THREE.Mesh(geometry, material);
+        var cylinder2 = new THREE.Mesh(geometry2, material3);
+        all.add(cylinder);
+        all.add(cylinder2);
+        cylinder.castShadow = true;
+        cylinder.receiveShadow = true;
+
+        cylinder2.castShadow = true;
+        cylinder2.receiveShadow = true;
+
+        cylinder.rotation.z = Math.PI / 2;
+        cylinder2.rotation.z = Math.PI / 2;
+        cylinder.rotation.x = Math.PI;
+        //cylinder.scale.z = .7;
+        tubes.init(0);
+
+
+        scene.add(all);
+
+
+        animate();
+
+        function animate() {
+
+            var fs = h / 5;
+            ctx.font = 'bold ' + fs + 'px arial';
+            ctx.textAlign = "center";
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, w, h);
+            var string = [
+                "IRON",
+                "HEART"
+            ];
+            ctx.fillStyle = "red";
+            for (let i = 0; i < 20; i++) {
+                ctx.fillText(
+                    string[i%2],
+                    w / 2,
+                    fs * i + (time * 500 % h) - h 
+                );
+            }
+            cylinder.material.needsUpdate = true;
+            material.map.needsUpdate = true;
+
+
+            for (let i = 0; i < cylinder.geometry.vertices.length; i++) {
+                var x = cylinder.geometry.vertices[i].x;
+                var y = cylinder.geometry.vertices[i].y;
+                var z = cylinder.geometry.vertices[i].z;
+                cylinder.geometry.vertices[i].x += Math.cos(time * 20 + z / 20) / 10;
+                cylinder.geometry.verticesNeedUpdate = true;
+            }
+            cylinder2.scale.y += Math.cos(time * 20) / 200;
+            all.position.y = Math.cos(time * 5) * 2;
+            all.rotation.z = Math.cos(time * 3) / 70;
+            all.rotation.y = Math.cos(time) / 15;
+            //all.rotation.y += .01;
+            
+            renderer.render(scene, camera);
+            ctx.fillStyle='#1F0740';
+            ctx.fillRect(0,0,w,h);
+            ctx.save(),
+            ctx.transform(1, -.2, 0, 1, 0, 0);
+            ctx.fillStyle = "red";
+            for (let i = 0; i < 20; i++) {
+                ctx.fillText(
+                    string[i%2],
+                    w / 2,
+                    fs * i + (time * 500 % h) - h 
+                );
+            }
+            ctx.restore()
+            ctx.drawImage(renderer.domElement, 0, 0);
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+        camera.position.z = 20;
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(w, h);
+        document.body.appendChild(renderer.domElement);
+        renderer.shadowMap.enabled = true;
+
+
+        var ambientLight = new THREE.AmbientLight(
+            new THREE.Color('cyan'),
+            .5
+        );
+        scene.add(ambientLight);
+
+        var pointLight = new THREE.PointLight(
+            new THREE.Color('white'),
+            2
+        );
+        scene.add(pointLight);
+
+        pointLight.castShadow = true;
+        pointLight.position.set(50, 50, 100);
+        pointLight.shadow.mapSize.x = 1024;
+        pointLight.shadow.mapSize.y = 1024;
+        pointLight.shadow.bias = -.0008;
+        pointLight.shadow.radius = 2;
+
+        var side = 10;
+        var pivot = new THREE.Object3D();
+        var material = new THREE.MeshStandardMaterial({
+            side: THREE.DoubleSide,
+        });
+
+        for (let i = 0; i < side * side; i++) {
+
+            var h = random(.5, 1);
+            var geometry = new THREE.BoxGeometry(1, 1, h, 1, 1, 1, );
+
+            var build = new THREE.Mesh(geometry, material);
+
+            pivot.add(build);
+            build.position.z = -h / 2;
+            build.position.x = (i % side) * 2 - side + 2;
+            build.position.y = Math.floor(i / side) * 2 - side + 2;
+
+            build.castShadow = true;
+            build.receiveShadow = true;
+
+        }
+
+        var geometry = new THREE.PlaneGeometry(side * 2, side * 2, 1, 1);
+        var plane = new THREE.Mesh(geometry, material);
+        pivot.add(plane);
+
+        plane.receiveShadow = true;
+        //plane.castShadow = true;
+
+        scene.add(pivot);
+        pivot.rotation.x = Math.PI / 2 + Math.PI / 8;
+        //pivot.position.x = - side;
+
+        animate();
+
+        function animate() {
+            //pivot.rotation.z += .01;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

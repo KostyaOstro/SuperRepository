@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <title>Document</title>
+    <script id = 'fragmentShader' type = 'x-shader/x-fragment'>
+        uniform float time;
+        uniform sampler2D texture1;
+        varying vec2 mv;
+
+        void main(){
+            vec2 mv2 = mv;
+            mv2.x += floor(cos(mv.y * 7.)) / 50.;
+            vec4 img = texture2D(texture1, mv2);
+            gl_FragColor = img;
+        }
+
+    </script>
+    <script id = 'vertexShader' type = 'x-shader/x-vertex'>
+        uniform float time;
+        uniform sampler2D texture1;
+        varying vec2 mv;
+
+        void main(){
+            mv = uv;
+            vec3 p = position;
+            float x = p.x ;
+            float y = p.y ;
+            float z = p.z ;
+            //x += cos(floor(y / 50. * 3. + x / 50. + time * 5.) ) * 4. + cos(floor(y / 50.  + x / 50.* 3. + time * 5.) ) * 4.;
+            //y += cos(x / 50. * 4. + time * 5.) * 8.;
+            //z += cos(x / 50. * 7. + time * 5.) * 7.;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(x, y, z, 1.);
+        }
+
+    </script>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var uniforms;
+
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+
+        var fs = h / 4;
+        var lh = 1;
+        var string = 'HELLO';
+        ctx.font = 'bold ' + fs + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'black';
+        ctx.fillText (
+            string,
+            w / 2,
+            h /2
+        )
+
+        
+
+        if (ctx) {
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+            camera.position.z = 100;
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(w, h);
+            document.body.appendChild(renderer.domElement);
+
+            var tex = new THREE.TextureLoader().load("/images/dumplogo2.png");
+
+            uniforms = {
+                time:{
+                    type: "f",
+                    value: 0,
+                },
+                "texture1":{
+                    value: tex,
+                },
+            }
+
+            var geomtery = new THREE.PlaneGeometry(100, 100, 100, 100);
+            var material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: document.getElementById("vertexShader").textContent,
+                fragmentShader:document.getElementById("fragmentShader").textContent,
+            })
+            var plane = new THREE.Mesh(geomtery, material);
+            scene.add(plane);
+            animate()
+        }
+
+        function animate() {
+            uniforms.time.value = time;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

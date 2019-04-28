@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px
+        }
+    </style>
+    <script>
+        var ctx, drawingCanvas;
+        var time = 0;
+
+        var grid = {
+            h: 10,
+            get v() {
+                return this.h
+            },
+            side: 100,
+            border: 30,
+            padding: 0,
+            get copies() {
+                return this.h * this.v;
+            }
+        }
+        var w, h;
+
+        window.onload = function () {
+            drawingCanvas = document.createElement('canvas');
+            ctx = drawingCanvas.getContext("2d");
+            w = grid.h * grid.side + grid.border * 2;
+            h = grid.v * grid.side + grid.border * 2;
+            drawingCanvas.height = h;
+            drawingCanvas.width = w;
+            document.body.appendChild(drawingCanvas)
+
+            animate();
+        };
+
+        function draw() {
+            initTexture();
+        }
+
+        function initTexture() {
+            var slicew = [];
+            var sliceh = [];
+            var stopWidth = 0;
+            slicingw();
+           
+            function slicingw() {
+
+                if (stopWidth < (w - 5)) {
+                    var value = 64;
+                    var lastValue = w - stopWidth;
+                    if (lastValue < value) {
+                        value = lastValue
+                    }
+                    var s = Math.round(Math.random() * value)+5;
+                    stopWidth += s;
+                    slicew.push(s);
+                   
+                    slicingw();
+
+                } else {
+                    var s = w - stopWidth;
+                    slicew.push(s);
+                   
+                    return
+                }
+            }
+            stopWidth = 0;
+            slicingh();
+            function slicingh() {
+
+                if (stopWidth < (h - 5)) {
+                    
+                    var value = 64;
+                    var lastValue = h - stopWidth;
+                    if (lastValue < value) {
+                        value = lastValue
+                    }
+                    var s = Math.round(Math.random() * value)+5;
+                    stopWidth += s;
+                    sliceh.push(s);
+                 
+                    slicingh();
+
+                } else {
+                    var s = h - stopWidth;
+                    sliceh.push(s);
+                    
+                    return
+                }
+            }
+
+
+            
+            var offsetw = 0;
+            
+            for (i = 0; i < slicew.length - 1; i++) {
+                var offseth = 0;
+                for (j = 0; j < sliceh.length - 1; j++) {
+                   
+                    ctx.fillStyle = rColor();
+                    ctx.fillRect(offsetw, offseth, slicew[i], sliceh[j]);
+
+                    offseth += sliceh[j];
+                }
+                offsetw += slicew[i];
+
+            }
+        }
+
+
+        function rColor() {
+            var seed = Math.round(Math.random() * 6);
+            switch (seed) {
+                // case 1:
+                //     var r = Math.round(Math.random() * 128) + 64;
+                //     var g = Math.round(Math.random() * 128) + 64;
+                //     var b = 0;
+                //     break;
+                // case 2:
+                //     var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                //     var g = Math.round(Math.random() * 128) + 64;
+                //     var b = Math.round(Math.random() * 128) + 64;
+                default:
+                    var r = Math.round(Math.random() * 256) ;
+                    var g =r //0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var b =r// Math.round(Math.random() * 128) + 64;
+                    break;
+            }
+            var rgb = "rgba(" + r + "," + g + "," + b + ",0.7)";
+            return rgb;
+        }
+
+
+
+
+        function clearFrame() {
+            ctx.clearRect(0, 0, w, h);
+        }
+
+        function animate() {
+            clearFrame();
+            draw();
+            //requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</head>
+<link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+<script src="javascripts/three.js"></script>
+<script src="javascripts/orbitcontrols.js"></script>
+
+<body>
+
+
+</body>
+
+</html>

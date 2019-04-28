@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        var ctx;
+        var copies = 100;
+
+        var x = [];
+        var bgColor = 'black';
+        var y = [];
+        var w = 1200;
+        var h = 1200;
+        //var xx = yy = w / 2;
+        //var x22 = y22 = h / 2;
+        var color = [];
+        var point = [];
+        var drama=10;
+        for (i = 0; i < drama; i++) {
+            point[i] = {
+                angle: Math.PI * 2 * Math.random(),
+                get x() {
+                    return Math.cos(this.angle)
+                },
+                get y() {
+                    return Math.sin(this.angle)
+                },
+                ix: Math.random()*w,
+                iy: Math.random()*h,
+                aSpeed: Math.random(),
+                triggerTime: Math.random() * 1000 + 300,
+                timer: 0,
+                color: [],
+                px: [],
+                py: [],
+                dd:Math.random()*5,
+                copies: Math.random() * 10 + 100,
+                initiate() {
+                    var seed = Math.round(Math.random() * 3);
+                    for (j = 0; j < this.copies; j++) {
+                        
+                        switch (seed) {
+                            case 1:
+                                var r = Math.sin(Math.PI * 2 / this.copies * j) * 128 + 128;
+                                var b = Math.cos(Math.PI * 2 / this.copies * j) * 128 + 128;
+                                var g = 0;
+                                break;
+                            case 2:
+                                var r =Math.cos(Math.PI * 2 / this.copies * j) * 128 + 128;
+                                var b = 0;
+                                var g = Math.sin(Math.PI * 2 / this.copies * j) * 128 + 128;
+                                break;
+                            default:
+                                var r = 0;
+                                var b = Math.cos(Math.PI * 2 / this.copies * j) * 128 + 128;
+                                var g =Math.sin(Math.PI * 2 / this.copies * j)* 128 + 128;
+                                break;
+                        }
+                        this.color[j] = "rgb(" + r + "," + g + "," + b + ")";
+                        this.px[j] = this.ix+Math.random()*w/3-w/6;
+                        this.py[j] =this.iy+Math.random()*w/3-w/6
+                    }
+                },
+                tracer() {
+                    trace(this)
+                }
+
+            }
+        }
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.height = w;
+            canvas.width = h;
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, w, h);
+            for (i = 0; i < drama; i++) {
+                point[i].initiate();
+            }
+            animate();
+        }
+
+        function animate() {
+            clear();
+            draw();
+            window.requestAnimationFrame(animate)
+        }
+
+        function draw() {
+            for (j = 0; j < drama; j++) {
+                point[j].tracer()
+            }
+        }
+
+        function trace(obj) {
+            if (obj.timer >= obj.triggerTime) {
+                obj.angle = Math.PI * 2 * Math.random();
+                obj.timer = 0;
+                obj.triggerTime = Math.random() * 100 + 1000;
+                obj.aSpeed = Math.random();
+                obj.dd=Math.random()*7;
+            }
+            obj.ix += obj.x;
+            obj.iy += obj.y;
+            if (obj.ix >= w || obj.ix <= 0) {
+                obj.angle += Math.PI
+            };
+            if (obj.iy >= h || obj.iy <= 0) {
+                obj.angle += Math.PI
+            };
+            obj.timer++;
+            obj.angle += Math.PI / 180 * obj.aSpeed;
+            ctx.beginPath();
+            // ctx.fillStyle='white';
+            ctx.arc(obj.ix, obj.iy, 0.1, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+            var dist = [];
+
+            for (i = 0; i < copies; i++) {
+
+                ctx.fillStyle = obj.color[i];
+                dist[i] = fDist(obj.ix, obj.iy, obj.px[i], obj.py[i]);
+                if (dist[i] > obj.dd * (i + 1)) {
+                    obj.px[i] += Math.cos(fAngle(obj.px[i], obj.py[i], obj.ix, obj.iy));
+                    obj.py[i] += Math.sin(fAngle(obj.px[i], obj.py[i], obj.ix, obj.iy));
+                }
+                ctx.beginPath();
+                ctx.arc(obj.px[i], obj.py[i], 0.1, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+        }
+
+        function fAngle(x1, y1, x2, y2) {
+            var angle = Math.atan2(y2 - y1, x2 - x1);
+            return angle
+        }
+
+        function fDist(x1, y1, x2, y2) {
+            var d = Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+            return d
+        }
+
+        function clear() {
+            //ctx.fillStyle='rgba(0,0,0,0.01)';
+            // ctx.fillRect(0, 0, w, h)
+        }
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

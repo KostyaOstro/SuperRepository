@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px
+        }
+    </style>
+
+</head>
+<script src="javascripts/three.js"></script>
+<script src="javascripts/orbitcontrols.js"></script>
+
+
+
+
+<body>
+    <script>
+        var ctx, w, h;
+        var time = 0;
+        var image;
+        var sx = 4;
+        var w = 128;
+        var h = 128;
+        var steps = 10;
+        steps = 256 / steps;
+        var mas = [];
+        var plane = [];
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 2000);
+        //var controls = new THREE.OrbitControls(camera);
+        var controls = new THREE.OrbitControls( camera);
+        var renderer = new THREE.WebGLRenderer();
+        var all=new THREE.Object3D();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        camera.position.z = 500;
+        
+        controls.update();
+
+        canvas = document.createElement("canvas");
+        //document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        canvas.width = w;
+        canvas.height = h;
+
+        image = new Image();
+        image.src = 'images/tex.png';
+        image.addEventListener("load", function () {
+            initMas()
+        }, false);
+
+        
+       
+
+
+
+
+
+        function clearFrame() {
+            ctx.clearRect(0, 0, w, h);
+
+        }
+
+        function initMas() {
+           ctx.drawImage(image, 0, 0, w, h);
+            var data = ctx.getImageData(0, 0, w, h);
+            var idata = data.data;
+            var j = 0;
+            var planem = new THREE.LineBasicMaterial({
+                color: 'orange'
+            });
+           for (i = 0; i < w; i++) {
+               // mas[i] = [];
+               // plane[i] = [];
+               var planeg= new THREE.Geometry();
+                for (j = 0; j < w; j++) {
+                    var index = j * w * 4 + i * 4;
+                    var avC = Math.round((idata[index] + idata[index + 1] + idata[index + 2]) / 3);
+                    
+                    
+                    
+                    var x = sx * j;
+                    var y =0;// h / 2* sx - sx * j;
+                    var z = (avC-avC/2)/2;
+                    planeg.vertices.push( new THREE.Vector3( x, y, z ) );
+                    //plane.position.set(x, y, z);
+                }
+                plane[i] = new THREE.Line(planeg, planem);
+                all.add(plane[i]);
+                plane[i].position.y=h / 2* sx-i*sx;
+                plane[i].position.x=-2*h ;
+                
+            }
+            scene.add(all);
+            all.rotation.z=-Math.PI/2;
+            // draw()
+            animate();
+        }
+
+
+
+        function animate() {
+            controls.update();
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            time++
+        }
+    </script>
+
+</body>
+
+</html>

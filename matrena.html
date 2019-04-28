@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <script src="/javascripts/objloader.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var gsc = rSeed(5);
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(w, h);
+        document.body.appendChild(renderer.domElement);
+        renderer.shadowMap.enabled = true;
+
+        var ambientLight = new THREE.AmbientLight(0x404040, 2);
+        scene.add(ambientLight);
+
+        var pointLight = new THREE.PointLight(0x404040, 1);
+        scene.add(pointLight);
+        pointLight.position.set(100, 100, 100);
+        pointLight.castShadow = true;
+        pointLight.shadow.bias = -.004;
+        pointLight.shadow.radius = 2;
+        pointLight.shadow.mapSize.x = 1024;
+        pointLight.shadow.mapSize.y = 1024;
+
+
+
+        var mesh = [];
+        var tex = new THREE.TextureLoader();
+        tex.load(
+            "/images/pluto.jpg",
+            function (texture) {
+                var matrena = new THREE.Object3D();
+
+                var loader = new THREE.OBJLoader();
+
+                loader.load(
+                    '/obj/matrena.obj',
+                    function (obj) {
+                        obj.traverse(
+                            function (child) {
+                                if (child.isMesh) {
+                                    var index = mesh.length;
+                                    geometry = child.geometry;
+                                    var material = new THREE.MeshStandardMaterial({
+                                        //color: rColor(gsc),
+                                        side: THREE.DoubleSide,
+                                        map: texture
+                                    });
+                                    //material.color = new THREE.Color(rColor(gsc));
+                                    mesh[index] = new THREE.Mesh(geometry, material);
+                                    mesh[index].castShadow = true;
+                                    mesh[index].receiveShadow = true;
+                                    matrena.add(mesh[index]);
+                                }
+                            }
+                        )
+                        scene.add(matrena);
+                        var s = 18;
+                        matrena.scale.set(s, s, s);
+                        matrena.position.y = -s * 2.4;
+                    },
+                    function onprogress() {},
+                    function onerrror() {}
+                )
+
+                animate()
+            },
+            function () {},
+            function () {}
+        );
+
+
+        function animate() {
+
+            for (let i = 0; i < mesh.length; i++) {
+
+                var s = Math.cos(time * 10 + i / mesh.length * 5) * .1 + 1;
+
+                mesh[i].scale.set(s, 1, s);
+
+
+                if (i % 2 == 0) {
+                    mesh[i].rotation.y = time / 5;
+                } else {
+                    mesh[i].rotation.y = -time / 5;
+                }
+
+
+            }
+            renderer.shadowMap.needsUpdate = true;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

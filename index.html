@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px
+        }
+    </style>
+    <script>
+        var ctx, drawingCanvas;
+        var time = 0;
+
+        var grid = {
+            h: 1,
+            get v() {
+                return this.h
+            },
+            side: 1000,
+            border: 10,
+            padding: 30,
+            get copies() {
+                return this.h * this.v;
+            }
+        }
+        var w, h;
+        var bgColor='black';
+        var drama = [];
+        var cColor='white'
+
+
+        window.onload = function () {
+            drawingCanvas = document.createElement('canvas');
+            ctx = drawingCanvas.getContext("2d");
+            w = grid.h * grid.side + grid.border * 2+(grid.h-1) * grid.padding;
+            h = grid.v * grid.side + grid.border * 2+(grid.v-1) * grid.padding;
+            drawingCanvas.height = h;
+            drawingCanvas.width = w;
+            document.body.appendChild(drawingCanvas);
+            ctx.fillStyle=bgColor;
+            ctx.fillRect(0,0,w,h);
+            for (ii = 0; ii < grid.h; ii++) {
+                for (jj = 0; jj < grid.h; jj++) {
+                    ob = {
+                        x: grid.border + jj * grid.side + grid.side / 2,
+                        y: grid.border + ii * grid.side + grid.side / 2,
+                        radius: grid.side / 3,
+                        speed: 100,
+                        line: {
+                            color: {
+                                r:Math.random() * 20+ 40,
+                                g:Math.random() * 20+ 40,
+                                b:Math.random() * 20+ 40,
+                            },
+                            length: Math.random()*grid.side / 8+grid.side / 12,
+                            speed: Math.random()*60+20,
+                            speedSize: [
+                            Math.random()*45+20,
+                            Math.random()*45+20
+                            ],
+                        },
+                        draw: function () {
+                            drawCircle(this)
+                        }
+                    }
+                    //console.log(ob);
+                    drama.push(ob);
+                }
+            };
+
+            animate();
+        };
+
+        function draw() {
+            for(i=0;i<drama.length;i++){
+                drama[i].draw()
+            }
+            
+        }
+
+        function drawCircle(obj) {
+            var r=128+Math.sin(time/obj.line.color.r)*128;
+            var b=128+Math.sin(time/obj.line.color.b)*128;
+            var g=0;//128+Math.sin(time/obj.line.color.g)*128;
+            var rgb="rgb("+r+","+g+","+b+")";
+            
+            ctx.strokeStyle=rgb;
+            var x = obj.x;
+            var y = obj.y;
+            var radius = obj.radius;
+            var angle = time / obj.speed;
+            var rx = x + Math.cos(angle) * radius;
+            var ry = y + Math.sin(angle) * radius;
+            // ctx.fillStyle = cColor;
+            // ctx.beginPath();
+            // ctx.arc(rx, ry, 0.5, 0, Math.PI * 2, false);
+            // ctx.closePath();
+            // ctx.fill();
+
+            var angle2 = time / obj.line.speed;
+            var length = obj.line.length * Math.cos(time / obj.line.speedSize[0]);
+            var lx1 = rx + Math.cos(angle2) * length;
+            var ly1 = ry + Math.sin(angle2) * length;
+            ctx.beginPath();
+            ctx.moveTo(rx, ry);
+            ctx.lineTo(lx1, ly1);
+            ctx.stroke();
+            length = obj.line.length * Math.cos(time / obj.line.speedSize[1]);
+            angle2 += Math.PI;
+
+            lx1 = rx + Math.cos(angle2) * length;
+            ly1 = ry + Math.sin(angle2) * length;
+            ctx.beginPath();
+            ctx.moveTo(rx, ry);
+            ctx.lineTo(lx1, ly1);
+            ctx.stroke();
+        }
+
+
+
+
+        function rColor() {
+            var seed = Math.round(Math.random() * 3);
+            switch (seed) {
+                // case 1:
+                //     var r = Math.round(Math.random() * 128) + 64;
+                //     var g = r;//Math.round(Math.random() * 128) + 64;
+                //     var b = 0;
+                //     break;
+                case 2:
+                    var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var g = Math.round(Math.random() * 128) + 64;
+                    var b = Math.round(Math.random() * 128) + 64;
+                default:
+                    var r = Math.round(Math.random() * 128) + 64;
+                    var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                    var b = Math.round(Math.random() * 128) + 64;
+                    break;
+            }
+            var rgb = "rgba(" + r + "," + g + "," + b + ",0.7)";
+            return rgb;
+        }
+
+
+
+
+        function clearFrame() {
+            // ctx.clearRect(0, 0, w, h);
+        }
+
+        function animate() {
+            clearFrame();
+            draw();
+            requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</head>
+<link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+<script src="javascripts/three.js"></script>
+<script src="javascripts/orbitcontrols.js"></script>
+
+<body>
+
+
+</body>
+
+</html>

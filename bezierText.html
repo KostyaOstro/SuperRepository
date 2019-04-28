@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/myLib.js"></script>
+</head>
+<script>
+    var cancas, ctx;
+    var w = h = 1024;
+    var time = 0;
+    var posX = posY = w / 2;
+    var gsc, bg;
+    window.onload = function () {
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+        gsc = rSeed (5);
+        
+        animate()
+    }
+
+    var bezierText = {
+        string: [
+            'USELESS TALK',
+            'USELESS TALK',
+            'BLAH BLAH BLAH',
+            'BLAH',
+            'BLAH BLAH',
+            'USELESS TALK',
+        ],
+        copies: 5,
+        shape: [],
+        fs: w / 18,
+        x: [],
+        y: [],
+        vx: [],
+        vy: [],
+        as: [],
+        trigger: [],
+        timer: [],
+        childs: [],
+        l: [],
+        color: [],
+        k1: [],
+        k2: [],
+        ma: [],
+        type: [],
+        a: [],
+        draw() {
+            if (time == 0) {
+                //this.fs = w / 20;
+
+                for (let j = 0; j < this.string.length; j++) {
+                    this.color[j] = rColor(gsc),
+                    this.x[j] = [];
+                    this.y[j] = [];
+                    this.childs[j] = [];
+                    this.l[j] = [];
+                    this.k1[j] = [];
+                    this.k2[j] = [];
+                    this.type[j] = [];
+                    this.a[j] = [];
+                    this.ma[j] = random(0, Math.PI * 2);
+                    let a = random(0, Math.PI * 2);
+                    this.vx[j] = Math.cos(a);
+                    this.vy[j] = Math.sin(a);
+                    this.as[j] = random(-0.01, 0.01);
+                    this.timer[j] = random(150, 300);
+                    this.trigger[j] = 0;
+                    let x = random( w / 5, w * 4 / 5);
+                    let y = random( w / 5, w * 4 / 5);
+
+                    for (let i = 0; i < this.string[j].length; i++) {
+                        this.a[j][i] = 0;
+                        this.x[j][i] = x;
+                        this.y[j][i] = y;
+                        this.childs[j][i] = rSeed(3);
+                        this.l[j][i] = random(this.fs, this.fs * 3);
+                        this.k1[j][i] = random(2, 8);
+                        this.k2[j][i] = random(4, 6);
+                        this.type[j][i] = rSeed(1);
+                    }
+
+                };
+                for (let i = 0; i < this.copies; i++) {
+                    this.shape[i] = {
+                        k1: random(5, 30),
+                        k2: random(5, 30),
+                        x: random( w / 5, w * 4 / 5),
+                        y: random( w / 5, w * 4 / 5),
+                        r: random(w / 20 , w / 4),
+                        color: rColor(gsc),
+                    }
+                }
+            }
+            for (let i = 0; i < this.copies; i++) {
+                ctx.beginPath()
+                ctx.fillStyle = this.shape[i].color;
+                for (let j = 0; j < 100; j++) {
+                
+                    let pa = Math.PI * 2 / 100 * j;
+                    
+                    let px = this.shape[i].r * Math.cos(pa) + this.shape[i].x;
+                    let py = this.shape[i].r * Math.sin(pa) + this.shape[i].y;
+                    
+                    let fx = px + Math.cos(py / h * this.shape[i].k1  + time / 100 + i / this.copies * 7) * this.shape[i].r / 6;
+                    let fy = py + Math.cos(fx / h * this.shape[i].k2  + time / 100  + i / this.copies) * this.shape[i].r / 6;
+                    if (j == 0) {
+                        ctx.moveTo(fx, fy)
+                    } else {
+                        ctx.lineTo(fx, fy)
+                    }
+                }
+                ctx.fill();
+            }
+            for (let j = 0; j < this.string.length; j++) {
+                this.trigger[j]++
+                for (let i = 0; i < this.string[j].length; i++) {
+                    if (i !== 0) {
+                        let dx = this.x[j][i - 1] - this.x[j][i];
+                        let dy = this.y[j][i - 1] - this.y[j][i];
+                        let d = Math.sqrt(
+                            Math.pow(dx, 2) + Math.pow(dy, 2)
+                        )
+                        this.a[j][i] = Math.atan2(dy, dx);
+                        if (d > this.fs) {
+                            
+                            this.x[j][i] += Math.cos(this.a[j][i]) * 2;
+                            this.y[j][i] += Math.sin(this.a[j][i]) * 2
+                        }
+                    } else {
+
+                        this.ma[j] += this.as[j];
+                        this.a[j][i] = this.ma[j];
+                        this.x[j][i] += Math.cos(this.ma[j]);
+                        this.y[j][i] += Math.sin(this.ma[j])
+                        // this.x[j][i] += this.vx[j];
+                        // this.y[j][i] += this.vy[j]
+                        if (this.x[j][i] > w || this.x[j][i] < 0) {
+                            this.ma[j] += Math.PI;
+                        }
+                        if (this.y[j][i] > w || this.y[j][i] < 0) {
+                            this.ma[j] += Math.PI;
+                        }
+
+
+                    }
+                    if (this.trigger[j] > this.timer[j]) {
+                        this.ma[j] = random(0, Math.PI * 2);
+                        this.as[j] = random(-0.01, 0.01);
+                        this.timer[j] = random(150, 300);
+                        this.trigger[j] = 0;
+                    }
+                    
+
+
+                    if (i !== 0) {
+                        ctx.strokeStyle = this.color[j];
+                        ctx.lineCap = "round";
+                        ctx.lineWidth = this.fs;
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            this.x[j][i - 1],
+                            this.y[j][i - 1]
+                        );
+                        ctx.lineTo(
+                            this.x[j][i],
+                            this.y[j][i]
+                        );
+                        ctx.stroke()
+
+
+
+                    }
+                }
+            }
+            for (let j = 0; j < this.string.length; j++) {
+                for (let i = 0; i < this.string[j].length; i++) {
+
+                    ctx.font = 'bold ' + this.fs + 'px arial';
+                    ctx.textAlign = "center";
+
+                    
+                    ctx.strokeStyle = this.color[j];
+                    ctx.lineWidth = 1;
+                    ctx.save();
+                    ctx.translate(
+                        this.x[j][i],
+                        this.y[j][i],
+                    );
+                    ctx.rotate(
+                        this.a[j][i],
+                    )
+                    ctx.beginPath();
+                    ctx.arc(
+                        0,
+                        0,
+                        this.fs / 2,
+                        0,
+                        Math.PI * 2
+                    )
+                    ctx.fillStyle = this.color[j];
+                    ctx.fill();
+                    ctx.fillStyle = "white";
+                    ctx.textAlign = "center";
+                    ctx.fillText(
+                        this.string[j][this.string[j].length - i - 1],
+                        0,
+                        this.fs / 2.5
+                    );
+                    ctx.strokeText(
+                        this.string[j][this.string[j].length - i - 1],
+                        0,
+                        this.fs / 2.5
+                    )
+                    ctx.restore();
+
+                }
+            }
+
+
+        }
+    }
+
+
+    window.onmousemove = function () {
+        var e = window.event;
+
+        posX = e.clientX;
+        posY = e.clientY;
+
+
+
+        // var t = setTimeout(mouse_position, 100);
+
+    }
+
+
+
+    function animate() {
+        clear();
+        bezierText.draw();
+        requestAnimationFrame(animate);
+        time++;
+
+    }
+
+    function clear() {
+        ctx.clearRect(0, 0, w, h)
+    }
+</script>
+
+<body>
+
+</body>
+
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+    <script src="/javascripts/SVGLoader.js"></script>
+    <script id = 'fshader' type = 'x-shader / x-fragment'>
+        uniform float time;
+        varying vec3 p;
+        void main(){
+            float l = distance(p, vec3(0.,0.,cos(time) * 600.)) / 900.; 
+            float l2 = distance(p, vec3(0.,sin(time) * 600., 0.)) / 900.;
+            if(l > .5 && l2 > .5 )discard;
+            gl_FragColor = vec4(vec3(.3), 1.);
+        }
+    </script>
+    <script id = 'vshader' type = 'x-shader / x-vertex'>
+        uniform float time;
+        varying vec3 p;
+        void main(){
+            p = position;
+            gl_Position= projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        }
+    </script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer({
+            alpha: true
+        });
+        renderer.setSize(w, h);
+        document.body.appendChild(renderer.domElement);
+        var group;
+        var loader = new THREE.SVGLoader();
+        var pivot = new THREE.Object3D();
+        var uniforms = {
+            time: {
+                type: 'f',
+                value: 0,
+            }
+        }
+
+        loader.load(
+            '/svg/jslogo.svg',
+            function (paths) {
+                group = new THREE.Group();
+                group.scale.multiplyScalar(0.1);
+                group.position.x = -45;
+                group.position.y = 30;
+                group.scale.y *= -1;
+                for (var i = 0; i < paths.length; i++) {
+                    var path = paths[i];
+                    var material = new THREE.ShaderMaterial({
+                        // wireframe: true,
+                        // color: path.color,
+                        side: THREE.DoubleSide,
+                        uniforms: uniforms,
+                        vertexShader: document.getElementById('vshader').textContent,
+                        fragmentShader: document.getElementById('fshader').textContent,
+                        // depthWrite: false
+                    });
+                    var shapes = path.toShapes(true);
+                    for (var j = 0; j < shapes.length; j++) {
+                        var shape = shapes[j];
+                        var extrudeSettings = {
+                            steps: 2,
+                            depth: 200,
+                            bevelEnabled: true,
+                            bevelThickness: 1,
+                            bevelSize: 1,
+                            bevelSegments: 1
+                        };
+                        var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+                        var mesh = new THREE.Mesh(geometry, material);
+                        group.add(mesh);
+                    }
+                }
+                pivot.add(group);
+                scene.add(pivot);
+                animate()
+            });
+
+        
+
+        function animate() {
+            uniforms.time.value = time;
+            pivot.rotation.y += 0.01;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

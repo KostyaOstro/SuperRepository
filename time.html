@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/myLib.js"></script>
+  
+    <script id='fShader1' type="x-shader/x-fragment">
+        uniform float time;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D texture3;
+        uniform sampler2D texture4;
+        varying vec2 mv;
+
+        void main(){
+            vec2 pv = mv;
+            pv.x += floor(cos(pv.x * 60. + time) - .001) / 30.;
+            vec4 img = texture2D(texture1, pv);
+            vec3 col = vec3(1.);
+            if(img.r < .9) discard;
+            if(!gl_FrontFacing)col *= 0.2;
+            gl_FragColor = vec4(col, 1);
+        }
+    </script>
+    <script id='fShader2' type="x-shader/x-fragment">
+        uniform float time;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D texture3;
+        uniform sampler2D texture4;
+        varying vec2 mv;
+
+        void main(){
+            vec2 pv = mv;
+            pv.x += floor(cos(pv.x * 60. + time)) / 30.;
+            vec4 img = texture2D(texture2, pv);
+            vec3 col = vec3(1.);
+            if(img.r < .9) discard;
+            if(!gl_FrontFacing)col *= 0.2;
+            gl_FragColor = vec4(col, 1);
+        }
+    </script>
+    <script id='fShader3' type="x-shader/x-fragment">
+        uniform float time;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D texture3;
+        uniform sampler2D texture4;
+        varying vec2 mv;
+
+        void main(){
+            vec2 pv = mv;
+            pv.x += floor(cos(pv.x * 60. + time)) / 30.;
+            vec4 img = texture2D(texture3, pv);
+            vec3 col = vec3(1.);
+            if(img.r < .9) discard;
+            if(!gl_FrontFacing)col *= 0.2;
+            gl_FragColor = vec4(col, 1);
+        }
+    </script>
+    <script id='fShader4' type="x-shader/x-fragment">
+        uniform float time;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D texture3;
+        uniform sampler2D texture4;
+        varying vec2 mv;
+
+        void main(){
+            vec2 pv = mv;
+            pv.x += floor(cos(pv.x * 60. + time)) / 30.;
+            vec4 img = texture2D(texture4, pv);
+            vec3 col = vec3(1.);
+            if(img.r < .9) discard;
+            if(!gl_FrontFacing)col *= 0.2;
+            gl_FragColor = vec4(col, 1);
+        }
+    </script>
+    <script id='vShader' type="x-shader/x-vertex">
+        uniform float time;
+        varying vec2 mv;
+        void main(){
+            mv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        }
+    </script>
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var cylinder = [];
+        var arrow = [];
+        var pivot = [];
+        var arpivot = [];
+        var canvas = [];
+        var ctx = [];
+        var h2 = w / 3 * Math.PI;
+        var txt = ["TIME", "DOES", "NOT", "WAIT"];
+        var tex = [];
+
+        for (let i = 0; i < 4; i++) {
+            canvas[i] = document.createElement("canvas");
+            canvas[i].width = w;
+            canvas[i].height = h2;
+            // document.body.appendChild(canvas[i]);
+            ctx[i] = canvas[i].getContext("2d");
+
+            ctx[i].fillStyle = "black";
+            ctx[i].fillRect(0, 0, w, h2);
+            ctx[i].fillStyle = "white";
+
+            ctx[i].font = 'bold ' + w / 3 + 'px arial';
+            ctx[i].textAlign = 'center';
+            for (let j = 0; j < 4; j++) {
+                ctx[i].save();
+                ctx[i].translate(w, 0);
+                ctx[i].rotate(Math.PI / 2);
+                ctx[i].fillRect(
+                    0, 0,
+                    20, h2
+                );
+                ctx[i].fillRect(
+                    h2 - 20, 0,
+                    20, h2
+                )
+                ctx[i].fillText(
+                    txt[3 - i],
+                    w / 2,
+                    w / 3 * (j + 1)
+                );
+                ctx[i].restore();
+            }
+        }
+        if (ctx[0]) {
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+            camera.position.z = 90;
+            var renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                logarithmicDepthBuffer: true
+            });
+            renderer.setSize(w, h);
+            document.body.appendChild(renderer.domElement);
+            var r = 10;
+            var tex1 = new THREE.CanvasTexture(canvas[0]);
+            var tex2 = new THREE.CanvasTexture(canvas[1]);
+            var tex3 = new THREE.CanvasTexture(canvas[2]);
+            var tex4 = new THREE.CanvasTexture(canvas[3]);
+
+            uniforms = {
+                time: {
+                    type: "f",
+                    value: 0
+                },
+                "texture1": {
+                    value: tex1
+                },
+                "texture2": {
+                    value: tex2
+                },
+                "texture3": {
+                    value: tex3
+                },
+                "texture4": {
+                    value: tex4
+                }
+            };
+
+
+
+            for (let i = 0; i < 4; i++) {
+                tex[i] = new THREE.CanvasTexture(canvas[i]);
+                arpivot[i] = new THREE.Object3D();
+                arpivot[3 + i] = new THREE.Object3D();
+                pivot[i] = new THREE.Object3D();
+                var geometry = new THREE.CylinderGeometry(r, r, 60, 20, 1, true);
+                var material = new THREE.ShaderMaterial({
+                    uniforms: uniforms,
+                    vertexShader: document.getElementById('vShader').textContent,
+
+                    side: THREE.DoubleSide
+                });
+                switch (i) {
+                    case 0:
+                        material.fragmentShader = document.getElementById('fShader1').textContent
+                        break;
+                    case 1:
+                        material.fragmentShader = document.getElementById('fShader2').textContent
+                        break;
+                    case 2:
+                        material.fragmentShader = document.getElementById('fShader3').textContent
+                        break;
+                    case 3:
+                        material.fragmentShader = document.getElementById('fShader4').textContent
+                        break;
+                }
+
+                var material2 = new THREE.MeshBasicMaterial({
+                    side: THREE.DoubleSide
+                });
+                cylinder[i] = new THREE.Mesh(geometry, material);
+                pivot[i].add(cylinder[i]);
+                geometry = new THREE.PlaneGeometry(1, 7.);
+
+
+                arrow[i] = new THREE.Mesh(geometry, material2);
+                arrow[i].rotation.x = Math.PI / 2;
+                arrow[i].position.z = 3.5;
+                arpivot[i].add(arrow[i]);
+                arpivot[i].position.y = 30;
+                arpivot[i].rotation.y -= Math.PI * 2 / 4 * i;
+
+                arrow[3 + i] = new THREE.Mesh(geometry, material2);
+                arrow[3 + i].rotation.x = Math.PI / 2;
+                arrow[3 + i].position.z = 3.5;
+                arpivot[3 + i].add(arrow[3 + i]);
+                arpivot[3 + i].position.y = -30;
+                arpivot[3 + i].rotation.y -= Math.PI * 2 / 4 * i;
+
+                pivot[i].add(arpivot[i]);
+                pivot[i].add(arpivot[3 + i]);
+
+                pivot[i].position.y = -r * 3 + r * 2 * i;
+                pivot[i].rotation.z = Math.PI / 2;
+                pivot[i].rotation.y -= Math.PI / 8 * i + Math.PI / 2;
+                scene.add(pivot[i]);
+            }
+
+            animate()
+        }
+
+        function animate() {
+            for (let i = 0; i < 4; i++) {
+                pivot[i].rotation.y -= .01;
+                cylinder[i].rotation.y += 0.01;
+                // arpivot[i].rotation.y -= .01;
+                // arpivot[3 + i].rotation.y -= .01;
+            }
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+    </script>
+</body>
+
+</html>

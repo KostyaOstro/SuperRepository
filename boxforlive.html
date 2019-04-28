@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        padding: 0px;
+        margin: 0px;
+    }
+</style>
+<script src="javascripts/three.js"></script>
+
+<body>
+    <script>
+        var ctx = [];
+        var canvas = [];
+        var windows;
+        canvasInit();
+
+        function canvasInit() {
+            canvas[0] = document.createElement("canvas");
+            ww = 16;
+            hh = 16;
+            canvas[0].height = hh;
+            canvas[0].width = ww;
+            //canvas[0].setAttribute("id", "windows");
+
+            // document.body.appendChild(canvas[0]);
+            // windows = document.getElementById("windows");
+            ctx[0] = canvas[0].getContext("2d");
+            ctx[0].fillStyle = 'white';
+            ctx[0].fillRect(0, 0, ww, hh);
+            ctx[0].fillStyle = 'black';
+            ctx[0].fillRect(4, 4, 8, 8)
+
+
+            console.log("onload")
+        }
+        var scene = new THREE.Scene();
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        var camera = new THREE.OrthographicCamera(w / -6, w / 6, h / 6, h / -6, 0.01, 1000);
+        camera.position.set(0, 100, 200);
+        camera.lookAt(0, 0, 0);
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(w, h);
+        document.body.appendChild(renderer.domElement);
+        
+        var color = ["#e9e2d0", "#ea9085", "#d45d79", "#6e5773"]
+
+        // var box = [];
+        // var l = 0;
+        var pivot = new THREE.Object3D();
+        for (i = 0; i < 10; i++) {
+            for (j = 0; j < 10; j++) {
+                for (k = 0; k < 10; k++) {
+                    var seed = Math.round(Math.random() * 10);
+                    if (seed > 5) {
+                        var flat = new THREE.Object3D();
+                        for (yy = 0; yy < 4; yy++) {
+                            var side = new THREE.Object3D();
+                            var planeG = new THREE.PlaneGeometry(10, 10, 1, 1);
+                            var wallM = new THREE.MeshBasicMaterial({
+                                color: color[yy],
+                                side: THREE.DoubleSide
+                            });
+                            // var winM = new THREE.MeshBasicMaterial({
+                            //     color: "#849aff",
+                            //     side: THREE.DoubleSide
+                            // });
+
+                            var wall = new THREE.Mesh(planeG, wallM);
+                            // var win = new THREE.Mesh(planeG, winM);
+                            wall.position.z = 5;
+                            // win.scale.set(0.5, 0.5, 0.5);
+                            // win.position.z = 5.1;
+                            side.add(wall);
+                            // side.add(win);
+                            flat.add(side);
+
+                            side.rotation.y = Math.PI / 2 * yy;
+                        }
+                        pivot.add(flat);
+
+                        flat.position.set((i - 5) * 10, (j - 5) * 10, (k - 5) * 10);
+                        //pivot.add(box[l]);
+                        // l++
+                    }
+
+                }
+
+            }
+        }
+
+
+        scene.add(pivot);
+        // planeM.bumpMap = new THREE.CanvasTexture(canvas[0],THREE.UVMapping,THREE.MirroredRepeatWrapping);
+        //planeM.bumpMap.needsUpdate = true;
+        //planeM.bumpMap.repeat.set(3,3);
+        //console.log("3");
+
+        animate();
+        var time = 0;
+
+        function animate() {
+            // for (i = 0; i < box.length; i++) {
+            //     box[i].rotation.y = Math.cos(i / box.length + time / 10) * Math.PI;
+            //     box[i].rotation.x = Math.sin(i / box.length + time / 20) * Math.PI;
+            //     box[i].rotation.y = Math.cos(i / box.length + time / 30) * Math.PI;
+            // }
+            pivot.rotation.y += 0.01;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</body>
+
+</html>

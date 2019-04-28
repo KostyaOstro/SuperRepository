@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<script>
+    var time, canvas, ctx;
+    var w = h = 1024;
+    var gsc;
+    window.onload = function () {
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+        liquid.init();
+        //animate()
+    }
+    var liquid = {
+        parents: 30,
+        points: 8,
+        r: w / 3,
+        delta: 0.4,
+        a: [],
+        l: [],
+        x: [],
+        y: [],
+        init() {
+            ctx.beginPath();
+            ctx.arc(w / 2, h / 2, this.r, 0, Math.PI * 2)
+            ctx.stroke();
+            var step = Math.PI * 2 / this.parents;
+            ctx.strokeRect(w / 2, h / 2, 5, 5)
+            for (let i = 0; i <= this.parents; i++) {
+                this.a[i] = step * i;
+                if (i != this.parents) {
+                    this.l[i] = this.delta * Math.random() * this.r - this.delta / 2 * this.r + this.r;
+                    var x = Math.cos(this.a[i]) * this.l[i] + w / 2;
+                    var y = Math.sin(this.a[i]) * this.l[i] + h / 2;
+                    ctx.fillRect(x, y, 5, 5);
+                }
+                if (i != 0) {
+                    for (let j = 0; j <= this.points; j++) {
+                        if(i== this.parents){
+                            var delta0=this.l[0]-this.r;
+                            var delta1=this.l[i]-this.r;
+                        }else{
+                            var delta0=this.l[i]-this.r;
+                            var delta1=this.l[i-1]-this.r;     
+                        }
+                        //+Math.cos(Math.PI*2/this.points*i*9)*this.r/25s;
+                        var angle = this.a[i - 1] + step / this.points * j;
+                       
+                        var length =(delta0 *j+delta1*(1-j))/2+this.r; 
+                        var x = Math.cos(angle) * length + w / 2;
+                        var y = Math.sin(angle) * length + h / 2;
+                        ctx.strokeRect(x, y, 5, 5);
+
+                    }
+                }
+
+
+
+            };
+
+        }
+    }
+</script>
+
+<body>
+
+</body>
+
+</html>

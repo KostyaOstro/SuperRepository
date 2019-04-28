@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px;
+        }
+    </style>
+    <script src="javascripts/three.js"></script>
+</head>
+
+<body>
+    <script>
+        // var canvas=document.createElement("canvas");
+        // canvas.height=600;
+        // canvas.width=600;
+        // document.body.appendChild(canvas);
+
+        // var ctx=canvas.getContext("2d");
+
+        // var tex=new Image();
+
+        // tex.src="images/tex.png";
+        // tex.onload=function(){
+        //     ctx.drawImage(tex,0,0)
+        // }
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        var g = new THREE.PlaneGeometry(192, 100.8, 1, 1);
+        //var light=new THREE.AmbientLight();
+        //scene.add(light);
+        var tex = [];
+        var pivot = new THREE.Object3D();
+        var slide=[];
+        for (i = 0; i < 8; i++) {
+            tex[i] = new THREE.TextureLoader().load('images/'+(i+1)+'-min.png');
+            var m = new THREE.MeshBasicMaterial({
+               // map: tex[i],
+               // transparent:true,
+                side: THREE.DoubleSide
+            });
+            slide[i] = new THREE.Mesh(g, m);
+            slide[i].position.z=-10*i;
+            pivot.add(slide[i]);
+        }
+        scene.add(pivot);
+        animate();
+        var time=0;
+        function rotate(){
+            camera.rotation.y+=Math.PI/10;
+        }
+        function animate() {
+            camera.rotation.y=Math.sin(time/50)*0.1;
+            pivot.rotation.y=Math.sin(time/50)*0.1;
+            pivot.rotation.x=Math.sin(time/50)*0.1;
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            time++
+        }
+    </script>
+</body>
+
+</html>

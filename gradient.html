@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Bungee" rel="stylesheet">
+</head>
+
+<style>
+    * {
+        margin: 0px;
+        padding: 0px;
+        font-family: 'Bungee';
+    }
+</style>
+<script>
+    var canvas, ctx, canvas2, ctx2;
+    var w = 1200;
+    var h = 1200;
+    var time = 0;
+    var globalSeedColor;
+    var obj = [];
+    var objects = 70;
+    var clipRect = [];
+    window.onload = function () {
+        globalSeedColor = Math.round(Math.random() * 3);
+        canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+        ctx.fillStyle = rColor(globalSeedColor);
+        ctx.fillRect(0, 0, w, h);
+        ctx.rotate(Math.PI / 4);
+        ctx.translate(0, -h / 2);
+        //ctx.globalCompositeOperation = 'destination-in';
+
+
+
+        for (i = 0; i < objects; i++) {
+            obj[i] = {
+                ww: Math.random() * w / 4,
+                hh: Math.random() * w / 4,
+                x: Math.random() * w,
+                y: Math.random() * h,
+                steps: Math.round(Math.random() * 3),
+                type: Math.round(Math.random() * 2),
+                vx: Math.random() - 0.5,
+                vy: Math.random() - 0.5,
+                timer: Math.random() * 500 + 200,
+                trigger: 0,
+                speed: Math.random()*10,
+                get gradient() {
+                    var gradient = ctx.createLinearGradient(this.x, this.y, this.x + this.ww, this.y + this
+                        .ww);
+                    for (var j = 0; j < this.color.length; j++) {
+                        gradient.addColorStop(j / this.color.length, this.color[j]);
+                    }
+                    return gradient
+                },
+                color: [
+                    rColor(globalSeedColor),
+                    rColor(globalSeedColor),
+                    rColor(globalSeedColor),
+                    rColor(globalSeedColor),
+                    rColor(globalSeedColor),
+                    rColor(globalSeedColor),
+                ],
+                draw() {
+
+                    if (this.trigger > this.timer) {
+                        this.timer = Math.random() * 500 + 200;
+                        this.trigger = 0;
+                        this.vx = Math.random() - 0.5;
+                        this.vy = Math.random() - 0.5;
+
+                    };
+
+                    this.x += this.vx * this.speed;
+                    this.y += this.vy * this.speed;
+                    if (this.x > w || this.x < 0) {
+                        this.vx = -this.vx
+                    }
+                    if (this.y > h || this.y < 0) {
+                        this.vy = -this.vy
+                    }
+
+
+                    switch (this.type) {
+                        case 1:
+                            ctx.beginPath();
+                            ctx.arc(this.x, this.y, this.ww / 2, 0, Math.PI * 2);
+                            ctx.closePath();
+                            ctx.fillStyle = this.gradient;
+                            ctx.fill();
+                            break;
+                        default:
+
+                            ctx.fillStyle = this.gradient;
+                            ctx.fillRect(this.x, this.y, this.ww, this.ww);
+                            break;
+                    }
+                    this.trigger++
+                }
+            }
+
+        }
+        animate();
+    }
+
+
+
+    function draw() {
+       
+        
+        for (i = 0; i < objects; i++) {
+            obj[i].draw()
+        }
+       
+    }
+
+
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        //ctx.clearRect(0, 0, w, h)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+</script>
+
+<body>
+</body>
+
+</html>

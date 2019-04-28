@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./javascripts/three.js"></script>
+    <script src="./javascripts/myLib.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+    <script id="fragmentShader2" type="x-shader/x-fragment">
+        varying vec3 vp;
+        varying vec2 vUv;
+        uniform float time;
+        uniform float size;
+        uniform float seed4;
+        void main() {
+
+               
+                
+                float l=length(vp);
+                vec3 c=vec3(
+                    1,
+                    cos(l/size+time/50.)*.5,
+                    sin(l/size)
+                   );
+               float b=.5;
+               if(fract(l/size*seed4)>0.8)discard;
+               if(gl_FrontFacing)gl_FragColor = vec4(c,1.); else gl_FragColor=vec4(c*b,1.);
+               
+                
+               
+
+      }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        varying vec3 vp;
+        varying vec2 vUv;
+        uniform float time;
+        uniform float size;
+        uniform float seed4;
+      void main() {
+
+               
+                
+                float l=length(vp);
+                vec3 c=vec3(
+                    cos(l/size+time/50.)*.5,
+                    cos(l/size),
+                    1.
+                   );
+               float b=.5;
+               if(fract(l/size*seed4)<.8)discard;
+               if(gl_FrontFacing)gl_FragColor = vec4(c,1.); else gl_FragColor=vec4(c*b,1.);
+      }
+    </script>
+    <script id="vertexShader" type="x-shader/x-vertex">
+           uniform float time;
+           uniform float seed1;
+           uniform float seed2;
+           uniform float seed3;
+           varying vec3 vp;
+           varying vec2 vUv;
+            void main() {
+            vUv=uv;
+           
+            vec3 newPosition=position;
+            newPosition.z+=cos(position.y/60.*seed1+time/10.)*5.;
+            newPosition.y+=cos(position.z/60.*seed2+time/10.)*5.;
+            newPosition.x+=cos(position.y/60.*seed3+time/10.)*5.;
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+            vp=newPosition;
+          }
+    </script>
+</head>
+
+<body>
+    <script>
+        var size=30;
+        var time = 0.;
+        var w = h = 1024.;
+        var canvas,ctx;
+
+        window.onload=function(){
+            canvas=document.createElement("canvas");
+            canvas.width=h;
+            canvas.height=h;
+            document.body.appendChild(canvas);
+            ctx=canvas.getContext("2d");
+        }
+
+
+
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(65, w / h, 0.01, 2000);
+        camera.position.z = 100;
+        var renderer = new THREE.WebGLRenderer({
+            alpha:true
+        });
+        renderer.setSize(w, h);
+        //document.body.appendChild(renderer.domElement);
+        var uniforms = {
+            time: {
+                type: "f",
+                value: 1.0
+            },
+            resolution: {
+                type: "v2",
+                value: new THREE.Vector2()
+            },
+            seed1:{
+                type:'f',
+                value:rSeed(20)+1
+            },
+            seed2:{
+                type:'f',
+                value:rSeed(20)+1
+            },
+            seed3:{
+                type:'f',
+                value:rSeed(20)+1
+            },
+            seed4:{
+                type:'f',
+                value:random(1,16)
+            },
+          
+            size:{
+                type:'f',
+                value:size
+            },
+           
+        };
+
+        uniforms.resolution.value.x = w;
+        uniforms.resolution.value.y = h;
+
+        var sphereGeometry = new THREE.SphereBufferGeometry(size, 120, 120);
+        var sphereGeometry2= new THREE.SphereBufferGeometry(size-1, 120, 120);
+       
+        var sphereMaterial1 = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            fragmentShader: document.getElementById('fragmentShader2').textContent,
+            vertexShader: document.getElementById('vertexShader').textContent,
+            side:THREE.DoubleSide
+            //wireframe:true
+        });
+
+        var sphereMaterial2 = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            fragmentShader: document.getElementById('fragmentShader').textContent,
+            vertexShader: document.getElementById('vertexShader').textContent,
+            side:THREE.DoubleSide
+            //wireframe:true
+        });
+
+        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial2);
+        scene.add(sphere);
+
+        var sphere2 = new THREE.Mesh(sphereGeometry2, sphereMaterial1);
+        scene.add(sphere2);
+
+
+        animate();
+
+        var text={
+            string:"LIQUID",
+            fs:h/10,
+            lh:1,
+            val:[],
+            draw(){
+                if(time<.2){
+                    for(let i=0;i<9;i++){
+                        if(i<3){
+                            this.val[i]=rSeed(1);
+                        }
+                        if(i<6&&i>2){
+                            if( this.val[i-3]==1){
+                                this.val[i]=rSeed(1);   
+                            }else{
+                                this.val[i]=1;    
+                            }
+                        }
+                        if(5<i){
+                            if(( this.val[i-3]+ this.val[i-6])==2){
+                                this.val[i]=0;
+                            }else{
+                                this.val[i]=1
+                            }
+                        }
+                    }
+                    
+                }else{
+                    var sum=0;
+                   // var sum2=0;
+                    var string2='&#@*'
+                    for(let i=0;i<9;i++){
+                        var x=((i%3)+0.5)*w/3;
+                        var y=(Math.floor(i/3)+.5)*w/3+this.fs/3;
+                        ctx.strokeStyle="white";
+                        ctx.font=this.fs+'px roboto';
+                        ctx.textAlign="center";
+                        if(this.val[i]==1){
+                            var text=this.string[sum];
+                            sum++
+                        }else{
+                            var text=string2[i%4];
+                        }
+                        ctx.strokeText(
+                            text,
+                            x,
+                            y
+                        )
+                        
+                    }
+                }
+            }
+        }
+
+
+
+        function animate() {
+            sphere.rotation.y+=0.01;
+            sphere2.rotation.y+=0.01;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            if(ctx){
+                ctx.fillStyle="blue";
+                ctx.fillRect(0,0,w,h);
+                text.draw();
+                ctx.drawImage(renderer.domElement,0,0)
+            }
+            uniforms.time.value = time;
+            time += .1
+        }
+    </script>
+</body>
+
+</html>

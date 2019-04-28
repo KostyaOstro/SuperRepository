@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/three.js"></script>
+    <script src="/javascripts/objloader.js"></script>
+</head>
+
+<body>
+    <script>
+        var w = h = 1024;
+        var canvas, ctx;
+        var canvas2, ctx2;
+        var canvas3, ctx3;
+        var canvast, ctxt;
+        var mesh, tors;
+        var time = 0;
+        var pivot;
+        var cylinder=[];
+        var renderer,scene,camera;
+        var cylinder2=[];
+        var cylinder3=[];
+        var string2="AGAIN";
+
+        
+
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.width = 16;
+            canvas.height = 16;
+            //document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+            ctx.fillStyle = "red";
+            ctx.fillRect(0, 0, 16, 16);
+            ctx.fillStyle = "white";
+            ctx.fillRect(
+                7,
+                4,
+                2,
+                8
+            )
+            ctx.fillRect(
+                4,
+                7,
+                8,
+                2
+            )
+
+            var w2 = 512 ;
+            var h2 = 64;
+            canvast = document.createElement("canvas");
+            canvast.width = w2;
+            canvast.height = h2;
+            //document.body.appendChild(canvast);
+            ctxt = canvast.getContext("2d");
+
+            ctxt.fillStyle = "white";
+            ctxt.fillRect(0,0,w2,h2);
+            var string="SHE'S LOST CONTROL";
+            ctxt.fillStyle = "black";
+            ctxt.font='bold '+h2*0.7+'px arial';
+            ctxt.fillText(string,0,h2*0.8)
+
+            
+            canvas2 = document.createElement("canvas");
+            canvas2.width = w;
+            canvas2.height = h;
+            //document.body.appendChild(canvas2);
+            ctx2 = canvas2.getContext("2d");
+
+            
+
+            ctx2.fillStyle = "black";
+            ctx2.font='bold '+h/4+'px arial';
+            ctx2.strokeStyle = "white";
+            
+            
+            canvas3 = document.createElement("canvas");
+            canvas3.width = w;
+            canvas3.height = h;
+            document.body.appendChild(canvas3);
+            ctx3 = canvas3.getContext("2d");
+
+
+            init3d()
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function init3d() {
+
+
+            scene = new THREE.Scene();
+            //scene.background = canvas2;
+
+            camera = new THREE.PerspectiveCamera(65, w / h, 0.01, 2000);
+            camera.position.set(0, 0, 250);
+            renderer = new THREE.WebGLRenderer({
+                antialias:true,
+                alpha:true
+            });
+            
+
+            var alight = new THREE.AmbientLight(0xcccccc, 0.8);
+            scene.add(alight);
+
+            var plight = new THREE.PointLight(0xFFAE9A, 0.8);
+            scene.add(plight);
+            plight.position.set(100, 100, 100);
+            //document.body.appendChild(renderer.domElement);
+            renderer.setSize(w, h);
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            plight.castShadow = true;
+
+            plight.shadow.mapSize.width = 512; // default
+            plight.shadow.mapSize.height = 512; // default
+            plight.shadow.camera.near = 5; // default
+            plight.shadow.camera.far = 500
+
+            var loader = new THREE.OBJLoader();
+            pivot = new THREE.Object3D();
+
+            var tex = new THREE.CanvasTexture(canvas)
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(50, 50);
+
+
+            loader.load(
+                'obj/torso.obj',
+                function (obj) {
+                    obj.traverse(
+                        function (child) {
+                            if (child.isMesh) {
+                                mesh = child.geometry
+                            }
+
+                        }
+                    );
+                    console.log(mesh);
+                    var material = new THREE.MeshStandardMaterial({
+                        side: THREE.DoubleSide,
+                        //color:0x7A0000,
+                        // roughness:0,
+                        //metalness:0.5,
+                        map: tex,
+                        //flatShading:true
+                        // wireframe: true
+                    })
+
+                    tors = new THREE.Mesh(mesh, material);
+                    pivot.add(tors);
+
+                    // tors.castShadow=true;
+                    tors.receiveShadow = true;
+
+                    tors.rotation.x = -Math.PI / 2;
+                    var size = 3.5;
+                    tors.scale.set(size, size, size);
+
+
+
+                },
+                function onprogress() {
+
+                },
+                function onerror() {
+
+                }
+
+            );
+                
+            var tex2 = new THREE.CanvasTexture(canvast)
+            tex2.wrapS = THREE.RepeatWrapping;
+            tex2.wrapT = THREE.RepeatWrapping;
+            tex2.repeat.set(8, 1);   
+
+
+            var cylinderg = new THREE.CylinderGeometry(100, 100, 10, 40, 1, true);
+            var cylinderm = new THREE.MeshBasicMaterial({
+                side: THREE.DoubleSide,
+                map:tex2
+            });
+
+            var cylinderm2 = new THREE.MeshStandardMaterial({
+                side: THREE.DoubleSide,
+                color:"red"
+            });
+
+            for(let i=0;i<4;i++){
+                cylinder[i] = new THREE.Mesh(cylinderg, cylinderm);
+                cylinder[i].castShadow = true;
+                //cylinder[i].receiveShadow=true;
+                cylinder[i].position.y = 50-i*30;
+                pivot.add(cylinder[i]); 
+            }
+           
+
+            var cylinderg2 = new THREE.CylinderGeometry(100, 100, 5, 40, 1, true);
+
+            // for(let i=0;i<8;i++){
+            //     cylinder2[i] = new THREE.Mesh(cylinderg2, cylinderm2);
+            //     cylinder2[i].castShadow = true;
+            //     //cylinder[i].receiveShadow=true;
+            //     cylinder2[i].position.y = -70-i*20;
+            //     pivot.add(cylinder2[i]); 
+            // }
+
+            // for(let i=0;i<8;i++){
+            //     cylinder3[i] = new THREE.Mesh(cylinderg2, cylinderm2);
+            //     cylinder3[i].castShadow = true;
+            //     //cylinder[i].receiveShadow=true;
+            //     cylinder3[i].position.y = 70+i*20;
+            //     pivot.add(cylinder3[i]); 
+            // }
+
+            scene.add(pivot);
+            pivot.rotation.z = Math.PI / 8;
+            pivot.rotation.y = Math.PI / 8;
+            pivot.scale.set(0.8,0.8,0.8);
+
+
+            animate();
+            
+        }
+        
+
+        function animate() {
+          
+           
+            ctx2.fillRect(0,0,w,h);
+            
+            for(let j=0;j<32;j++){
+                ctx2.strokeText(
+                    string2,
+                    w/14,
+                    time%h+j*h/8-h
+                )
+            }
+            if (mesh) {
+                tors.rotation.z += Math.cos(time / 50) * 0.005;
+            }
+            for(let i=0;i<4;i++){
+                if(i%2==0){
+                    cylinder[i].rotation.y += 0.01;
+                }else{
+                    cylinder[i].rotation.y -= 0.01;
+                }
+              
+                cylinder[i].rotation.x = Math.cos(time / 50) * Math.PI / 20;
+                var s=Math.cos(time/50+i)*0.15+1;
+                cylinder[i].scale.set(s,s,s);
+               
+            }
+            // for(let i=0;i<8;i++){
+            //     var s=Math.cos(time/50+i)*0.15+1.2;
+            //     cylinder2[i].rotation.x = Math.cos(time / 50) * Math.PI / 20;
+            //     cylinder2[i].scale.set(s,s,s);
+            //     cylinder3[i].rotation.x = Math.cos(time / 50) * Math.PI / 20;
+            //     cylinder3[i].scale.set(s,s,s)
+            // }
+
+            renderer.render(scene, camera);
+            ctx3.drawImage(canvas2,0,0);
+            ctx3.drawImage(renderer.domElement,0,0);
+            requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/myLib.js"></script>
+    <script src="/javascripts/three.js"></script>
+
+    <script id='vertexShader' type='x-shader/x-vertex'>
+        uniform float time;
+        varying vec3 pos;
+        varying vec2 vUv;
+
+        void main(){
+            vUv = uv ;
+            pos = position;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1);
+        }
+    </script>
+
+    <script id='fragmentShader' type='x-shader/x-fragment'>
+        uniform sampler2D texture1;
+        uniform float time;
+        varying vec3 pos;
+        varying vec2 vUv;
+
+        void main(){
+            float l = length( pos) ;
+            float c = fract( l * 200.);
+            float d = fract( vUv.x * 2.);
+            vec2 mv = vUv;
+            mv.x *= 2.;
+            //mv.x += .5;
+            mv.y -= sin(mv.x * 20. + time * 5.)*.02;
+            
+            vec4 img = texture2D ( texture1 , mv);
+            img.r = fract(mv.y * 10.);
+            img.g = fract(mv.y * 20.);
+            gl_FragColor = img;
+        }
+    </script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var w = h = 1024;
+        var time = 0;
+        var canvas,ctx;
+        var renderer, scene, camera;
+        var pivot, uniforms;
+        canvasInit();
+        function canvasInit(){
+            canvas = document.createElement("canvas");
+            ctx = canvas.getContext("2d");
+            canvas.width = w;
+            canvas.height = h;
+            document.body.appendChild(canvas);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, w, h);
+            var fs = h / 5;
+            var lh = 1;
+            ctx.font = 'bold ' + fs + 'px arial';
+            ctx.textAlign = "center";
+            ctx.fillStyle = "black";
+            ctx.fillText(
+                'HELLO',
+                w / 2,
+                h / 2 + fs / 2
+            )
+
+
+            initTHREEScene()
+        }
+
+
+
+        function initTHREEScene(){
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(65, w / h, .01, 2000);
+            camera.position.z = 100;
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(w, h);
+            document.body.appendChild(renderer.domElement);
+
+            var tex=new THREE.CanvasTexture(canvas);
+
+            var geometry = new THREE.SphereBufferGeometry(50, 50, 50);
+            var material = new THREE.MeshBasicMaterial({
+                wireframe: true
+            });
+
+            uniforms={
+                time: {
+                    type: "f",
+                    value: 0.
+                },
+                "texture1":{
+                    value: tex
+                }
+            };
+
+            var material2 = new THREE.ShaderMaterial({
+                fragmentShader:document.getElementById('fragmentShader').textContent,
+                vertexShader:document.getElementById('vertexShader').textContent,
+                uniforms: uniforms,
+                side: THREE.DoubleSide
+            });
+
+        
+            var copies = 10;
+            var offset = 2;
+            pivot = new THREE.Object3D();
+
+        
+
+            var plane = new THREE.Mesh(geometry, material2);
+            pivot.add(plane);
+        
+            
+            
+
+            scene.add(pivot);
+
+
+            animate();
+        }
+
+
+        
+
+        function animate() {
+
+           // pivot.rotation.y += 0.01;
+
+           
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            uniforms.time.value = time;
+            time += .01;
+
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./javascripts/three.js"></script>
+    <script src="./javascripts/myLib.js"></script>
+    <title>Document</title>
+
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var s = 100;
+        var w = s * 22;
+        var h = s * 22;
+        var uniforms;
+
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        document.body.appendChild(canvas);
+
+        var dump = [
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        ];
+        var dump2 = [
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        ];
+        // ctx.fillRect(
+        //     0,
+        //     0,
+        //     s * 22,
+        //     s * 7
+        // )
+
+        for (let i = 0; i < dump.length; i++) {
+            if (dump[i] == 0) {
+
+                
+
+
+                    let x = (i % 22) ;
+                    let y = Math.floor(i / 22);
+                    
+                    ctx.strokeStyle = "white";
+                    ctx.lineWidth = s / 10;
+                    ctx.lineJoin = "round";
+                    ctx.font = "bold " + s * .8 + "px arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    var symbol = '%$#@&ЖМЩGWQ*+'
+                    // ctx.fillStyle = "black";
+                    // ctx.fillRect(
+                    //     x*s,
+                    //     y*s,
+                    //     s,
+                    //     s
+                    // );
+                    // ctx.fillStyle = "white";
+                    // ctx.fillText(
+                    //     symbol[i % (symbol.length)],
+                    //     x * s + s / 2,
+                    //     y * s + s / 2
+                    // )
+                    geometries(x, y)
+
+                
+            }
+        }
+
+
+        function animate() {
+
+            requestAnimationFrame(animate);
+            time += .01;
+        }
+
+        function geometries(x, y) {
+            let seed = rSeed(6)
+            switch (seed) {
+                case 4:
+
+                  
+                    ctx.beginPath();
+                    ctx.arc(
+                        x * s + s / 2,
+                        y * s + s / 2,
+                        s / 2,
+                        0,
+                        Math.PI * 2
+                    )
+                    ctx.fill()
+                    break;
+                case 5:
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        x * s, y * s
+                    )
+                    ctx.lineTo(
+                        x * s, y * s + s
+                    )
+                    ctx.lineTo(
+                        x * s + s, y * s + s
+                    )
+                    ctx.closePath()
+                    ctx.fill()
+                    break;
+                case 6:
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        x * s, y * s
+                    )
+                    ctx.lineTo(
+                        x * s + s, y * s
+                    )
+                    ctx.lineTo(
+                        x * s, y * s + s
+                    )
+                    ctx.closePath()
+                    ctx.fill()
+                    break;
+                default:
+                    ctx.fillRect(
+                            x * s,
+                            y * s,
+                            s,
+                            s
+                        )
+            }
+        }
+    </script>
+</body>
+
+</html>

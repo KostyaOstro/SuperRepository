@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display|Ubuntu" rel="stylesheet">
+</head>
+<style>
+    *{
+        font-family: 'Ubuntu', sans-serif;
+    }
+</style>
+<script>
+    var canvas, ctx, canvas2, ctx2, canvas3, ctx3;
+    var w = h = 1024;
+    var time = 0;
+    var gsc;
+    var bgColor;
+    var textColor=[];
+    window.onload = function () {
+        
+        gsc = rSeed(5);
+        textColor[0]=rColor(gsc);
+        textColor[1]=rColor(gsc);
+        bgColor = rColor(gsc);
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        //document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+
+
+
+        canvas2 = document.createElement("canvas");
+        canvas2.width = w;
+        canvas2.height = h;
+        //document.body.appendChild(canvas2);
+        ctx2 = canvas2.getContext("2d");
+        ctx2.font='20px Arial';
+        canvas3 = document.createElement("canvas");
+        canvas3.width = w;
+        canvas3.height = h;
+        document.body.appendChild(canvas3);
+        ctx3 = canvas3.getContext("2d");
+
+        tree.init();
+        animate();
+
+    }
+  
+    var tree = {
+        branch: 200,
+        maxw: 4,
+        minw: 10,
+        maxSize:30,
+        minSize: 2,
+        maxLength: w / 6,
+        minLength: w / 30,
+        x: [],
+        y: [],
+        al: [],
+        ar: [],
+        child: [],
+        length: [],
+        parent: [],
+        type: [],
+        color: [],
+        width: [],
+        accent:[],
+        size: [],
+        
+        init() {
+            this.x[0] = w / 2;
+            this.y[0] = h / 2;
+            this.al[0] = 0;
+            this.ar[0] = Math.PI * 2;
+            this.parent[0] = 0;
+            for (let i = 0; i < this.branch; i++) {
+                this.child[i] = [];
+
+                var indexOffset = this.x.length;
+                if (i == 0) {
+                    var childs = rSeed(50) + 5;
+                    var angleStep = Math.PI * 2 / childs;
+                } else {
+                    var childs = rSeed(10) + 1;
+                    var angleStep = Math.PI / 2 / childs; ///Math.abs(this.al[i] - this.ar[i]) / childs;
+                }
+
+                for (let j = 0; j < childs; j++) {
+
+                    var index = indexOffset + j;
+                    this.parent[index] = i;
+                    var angle =
+                        this.al[i] -
+                        Math.abs(this.ar[i] - this.al[i]) / 2 +
+                        angleStep *
+                        j * random(0.8, 1.2);
+                    this.length[index] = random(this.minLength, this.maxLength);
+                    this.x[index] = Math.cos(angle) * this.length[index] + this.x[i];
+                    this.y[index] = Math.sin(angle) * this.length[index] + this.y[i];
+                    this.al[index] = angle;
+                    this.color[index] = rColor(gsc);
+                    this.ar[index] = angle + angleStep;
+                    this.child[i].push(index);
+                    this.accent[i]=rSeed(2);
+                    this.type[index] = rSeed(3);
+                    this.size[index] = random(this.minSize, this.maxSize);
+                    var lw = random(0, 200) / (this.parent[index] + 1);
+                    if (lw > this.maxw) {
+                        lw = this.maxw
+                    };
+                    if (lw < this.minw) {
+                        lw = this.minw
+                    }
+                    this.width[index] = lw;
+                    ctx.fillRect(
+                        this.x[index] - 1,
+                        this.y[index] - 1,
+                        2,
+                        2
+                    )
+                }
+            }
+
+        },
+        draw() {
+            for (let ii = 0; ii < this.x.length; ii++) {
+                if (ii != 0) {
+                    var x0 = this.x[this.parent[ii]];
+                    var y0 = this.y[this.parent[ii]];
+
+                    ctx.strokeStyle = this.color[ii];
+                    ctx.beginPath();
+
+                    var angle =
+                        this.al[ii] +
+                        Math.abs(this.ar[ii] - this.al[ii]) *
+                        Math.cos(time / (this.x.length + 50) + this.y[ii] / h + ii / this.x.length / 20) +
+                        time / 200;
+
+                    var length =
+                        this.length[ii] +
+                        this.length[ii] / 4 *
+                        Math.sin(time / 80 + this.x[ii] / w * 10);
+
+                    ctx.moveTo(x0, y0);
+                    this.x[ii] = x0 + Math.cos(angle) * length;
+                    this.y[ii] = y0 + Math.sin(angle) * length;
+                    ctx.lineTo(this.x[ii], this.y[ii]);
+                    ctx.closePath();
+
+                    var lw = 100 / dist(this.x[ii], this.y[ii], w / 2, h / 2);
+                    if (lw < this.maxw) {
+                        lw = this.maxw
+                    }
+                    ctx.lineWidth = lw;
+
+
+
+                    ctx.stroke()
+                    ctx2.fillStyle = this.color[ii];
+                    var ss =
+                        this.size[ii] +
+                        this.size[ii] / 4 *
+                        Math.cos(time / 50 +
+                            ii / this.x.length * 10);
+                    switch (this.type[ii]) {
+                        case 1:
+                            ctx2.beginPath();
+                            ctx2.arc(
+                                this.x[ii],
+                                this.y[ii],
+                                ss / 2,
+                                0,
+                                Math.PI * 2
+                            )
+                            ctx2.closePath();
+                            ctx2.fill();
+                            break;
+                        case 2:
+                            ctx2.fillRect(
+                                this.x[ii] + ss*1.5/4,
+                                this.y[ii] ,
+                                ss/4,
+                                ss
+                            );
+                            ctx2.fillRect(
+                                this.x[ii] ,
+                                this.y[ii]+ss*1.5/4,
+                                ss,
+                                ss/4
+                            )
+                            break;
+                        default:
+
+                            ctx2.fillRect(
+                                this.x[ii] - ss / 2,
+                                this.y[ii] - ss / 2,
+                                ss,
+                                ss
+                            )
+                            break;
+                    }
+                    switch (this.accent[ii]){
+                        
+                        case 1:
+                            ctx2.fillStyle=bgColor;
+                            ctx2.fillRect(this.x[ii],this.y[ii]-20,40,20);
+                            ctx2.fillStyle=this.color[ii];
+                            ctx2.fillText(
+                                Math.round(this.x[ii]*10)/10,
+                                this.x[ii],
+                                this.y[ii]
+                                )
+                        break;
+                        case 2:
+                            ctx2.lineWidth=1;
+                            ctx2.strokeStyle=this.color[ii];
+                            ctx2.beginPath();
+                            ctx2.arc(
+                                this.x[ii],
+                                this.y[ii],
+                                this.size[ii]*5,
+                                0,
+                                Math.PI * 2
+                            )
+                            ctx2.closePath();
+                            ctx2.stroke();
+                        break;
+                        default:
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    function draw() {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, w, h);
+        tree.draw();
+        ctx3.drawImage(canvas, 0, 0);
+        ctx3.drawImage(canvas2, 0, 0);
+        var fs=h/20;
+        var lh=fs*1.2;
+        var string= ["I'm trying","to understand","her behavior"];
+        //ctx3.textAlign="center";
+        ctx3.font=fs+"px Ubuntu";
+        ctx3.fillStyle=textColor[0];
+        ctx3.strokeStyle=textColor[0];
+        for(let i=0;i<h/lh*2;i++){
+            var y=-time%h+i*lh;
+            if(i%4==0){
+                ctx3.fillText(string[i%3],w/20,y);
+            }else{
+            ctx3.strokeText(string[i%3],w/20,y);}
+        }
+        
+    }
+
+    function animate() {
+        clear();
+        draw();
+        window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        // ctx.fillStyle="rgba(255,255,255,0.01)";
+        ctx.clearRect(0, 0, w, h);
+        ctx2.clearRect(0, 0, w, h)
+        //ctx.clearRect(0, 0, w, h)
+        //ctx.clearRect(0, 0, w, h)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    }
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    }
+
+    function dist(x1, y1, x2, y2) {
+        var dx = Math.abs(x1 - x2);
+        var dy = Math.abs(y1 - y2);
+        var d = Math.sqrt(dx * dx + dy * dy);
+        return d
+    }
+
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = color[s][seed];
+        return rgb;
+    }
+</script>
+
+
+<body>
+*
+</body>
+
+</html>

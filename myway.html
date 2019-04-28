@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:900" rel="stylesheet">
+</head>
+<script>
+    var time = 0;
+    var canvas, ctx;
+    var canvas2, ctx2;
+    var w = h = 1024;
+    var gsc, bg;
+    window.onload = function () {
+        gsc = rSeed(5);
+        bg = rColor(gsc);
+        canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        canvas2 = document.createElement("canvas");
+        canvas2.width = w;
+        canvas2.height = h;
+        ///document.body.appendChild(canvas2);
+        ctx2 = canvas2.getContext("2d");
+
+
+        ctx.textAlign = "center";
+        ctx.font = '20px arial';
+        dragon.init();
+
+        //dragon.init();
+        animate()
+    }
+    var dragon = {
+        t: {
+            string: ['IMAGINE', 'DRAGONS'],
+            p: 0,
+            fs: h /16,
+            lh: 1,
+            color: 0,
+            color2: 0,
+        },
+        v: rSeed(3) + 3,
+        h: rSeed(3) + 3,
+        d: 10,
+        path: [],
+        grid: [],
+        segment: [],
+        init() {
+            ctx.font=this.t.fs+'px Roboto';
+            for (let i = 0; i < this.v; i++) { //initial info about our grid
+
+                for (let j = 0; j < this.h; j++) {
+
+                    var index = i * this.h + j;
+                    this.grid[index] = {
+                        x: j,
+                        y: i,
+                        neighbor: [],
+                    }
+
+                    var n1 = index - 1;
+                    var n2 = index + 1;
+                    var n3 = index - this.h;
+                    var n4 = index + this.h;
+
+                    if (j > 0) this.grid[index].neighbor.push(n1);
+                    if (j != (this.h - 1)) this.grid[index].neighbor.push(n2);
+                    if (i > 0) this.grid[index].neighbor.push(n3);
+                    if (i != (this.v - 1)) this.grid[index].neighbor.push(n4);
+
+
+                }
+            };
+
+
+            this.t.p = rSeed(this.grid.length-1);
+
+            this.t.color = rColor(gsc);
+            this.t.color2 = rColor(gsc);
+
+            this.path[0] = rSeed(this.grid.length - 1);
+            index = 0;
+            for (let i = 0; i < this.grid.length; i++) { //initial our path
+
+                var lindex = this.path[this.path.length - 1];
+
+                var seed = rSeed(this.grid[lindex].neighbor.length - 1);
+                var candidate = this.grid[lindex].neighbor[seed];
+                var depth = 0;
+
+                busyTest(candidate, this, lindex, i);
+
+                function busyTest(value, obj, lindex, i) {
+
+                    var t = 1;
+                    for (let ii = 0; ii <= obj.path.length; ii++) {
+                        if (value == obj.path[ii]) {
+                            t = 0
+                        }
+                    }
+                    if (t == 0) {
+                        depth++
+                        if (depth > 4) return;
+
+                        seed = rSeed(obj.grid[lindex].neighbor.length - 1);
+                        candidate = obj.grid[lindex].neighbor[seed];
+                        busyTest(candidate, obj, lindex, i);
+
+                    } else {
+                        depth = 0;
+                        obj.path.push(value) //назначаю индекс следующего сегмента
+
+
+                    }
+                }
+
+            };
+            var stepX = w / (this.h + 1);
+            var stepY = h / (this.v + 1);
+            for (let i = 0; i < this.path.length; i++) { //initial our dragons segments
+
+                this.segment[i] = {
+                    d: 6,
+                    a: [],
+                    s: [],
+                    c: rSeed(10) + 5,
+                    seed: [],
+                    seed2: [],
+                    seed3: [],
+                    as: [],
+                    as2: [],
+                    color: [],
+                }
+                for (let j = 0; j < this.segment[i].d; j++) {
+
+                    this.segment[i].a[j] = (rSeed(5) + 3) * Math.PI / 8;
+                    var r = Math.min(stepX, stepY) / 2;
+                    this.segment[i].s[j] = r * random(0.4, 1.4);
+                    this.segment[i].seed[j] = rSeed(3);
+                    this.segment[i].seed2[j] = rSeed(3);
+                    this.segment[i].seed3[j] = rSeed(3);
+                    this.segment[i].color[j] = rColor(gsc);
+                    this.segment[i].as[j] = random(0, 0.01);
+                    this.segment[i].as2[j] = random(0, 0.01)
+
+                }
+            }
+
+        },
+        draw() {
+            var stepX = w / (this.h + 1);
+            var stepY = h / (this.v + 1);
+            ctx.lineWidth = 1;
+            for (let j = 0; j < this.grid.length; j++) {
+                this.grid[j].x += Math.cos(time / 50 + j / this.grid.length * 20) / 700;
+                this.grid[j].y += Math.sin(time / 50 + j / this.grid.length * 20) / 700;
+                ctx.strokeRect(
+                    (this.grid[j].x + 1) * stepX - 5,
+                    (this.grid[j].y + 1) * stepY - 5,
+                    10,
+                    10
+                )
+            }
+           
+
+
+
+
+            for (let j = 1; j < this.path.length; j++) {
+                var xx = (this.grid[this.path[j]].x + 1) * stepX;
+                var yy = (this.grid[this.path[j]].y + 1) * stepY;
+
+                var xx0 = (this.grid[this.path[j - 1]].x + 1) * stepX;
+                var yy0 = (this.grid[this.path[j - 1]].y + 1) * stepY;
+
+                var dx = xx - xx0;
+                var dy = yy - yy0;
+                var segment = this.segment[j];
+                for (let jj = 0; jj < segment.d; jj++) {
+                    var x = xx0 + dx / segment.d * jj;
+                    var y = yy0 + dy / segment.d * jj;
+
+                    ctx.lineWidth = 5;
+                    for (let ii = 0; ii < segment.c; ii++) {
+                        ctx.strokeStyle = segment.color[jj];
+                        ctx.fillStyle = segment.color[jj];
+                        ctx.beginPath();
+                        var a0 = time * segment.as2[jj] + Math.PI * 2 / segment.c * ii;
+                        var a = segment.a[jj];
+                        ctx.arc(
+                            x, y,
+                            segment.s[jj] / segment.c * ii,
+                            a0, a + a0)
+                        ctx.stroke()
+                    }
+
+                    switch (segment.seed2[jj]) {
+                        case 2:
+                            ctx.beginPath();
+                            ctx.arc(x, y, segment.s[jj] / 3, 0, Math.PI * 2);
+                            ctx.fill()
+                            break;
+                        default:
+                    }
+
+
+
+
+
+
+                    ctx.lineWidth = 1;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    var angle = segment.a[jj] + time * segment.as[jj]
+                    var x2 = x + Math.cos(angle) * segment.s[jj] * 1.5;
+                    var y2 = y + Math.sin(angle) * segment.s[jj] * 1.5;
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke()
+                    switch (segment.seed[jj]) {
+                        case 1:
+                            ctx.beginPath();
+                            ctx.arc(x2, y2, 10, 0, Math.PI * 2);
+                            if (segment.seed2[jj] > 2) {
+                                ctx.stroke()
+                            } else {
+                                ctx.fill()
+                            }
+
+                            break;
+                        case 2:
+                            ctx.strokeRect(x2 - 5, y2 - 5, 10, 10);
+                            break;
+                        default:
+                    }
+
+
+                }
+
+            };
+
+            ctx.fillStyle = this.t.color;
+            ctx.strokeStyle = this.t.color2;
+            ctx.lineWidth=2;
+
+            ctx.save();
+
+            var xx = (this.grid[this.t.p].x + 1) * stepX;
+            var yy = (this.grid[this.t.p].y + 1) * stepY;
+
+            // var xx = w/2;
+            // var yy = h/2;
+
+            
+            var k=Math.cos(time/80)*0.2
+            var tw=this.t.fs*5;
+            var th=this.t.fs*2.5;
+            ctx.setTransform(1, k, 0, 1, xx, yy - this.t.fs);
+            ctx.fillRect(
+                -tw/2, 
+                0,
+                tw,
+                th,
+            );
+            
+            for (let i = 0; i < this.t.string.length; i++) {
+                ctx.strokeText(
+                    this.t.string[i],
+                    0,
+                    this.t.fs * this.t.lh * (i+1),
+                );
+            }
+
+
+            ctx.restore();
+        }
+
+
+    };
+
+
+    function animate() {
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+        dragon.draw();
+        // ctx.fillStyle = bg;
+
+
+        time++;
+        requestAnimationFrame(animate)
+    }
+
+    function rColor(s) {
+        var seed = Math.round(Math.random() * 4);
+        var color = [];
+        color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+        color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+        color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+        color[3] = ["#999", "#777", "#555", "#333", "#111"];
+        color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+        color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+        var rgb = color[s][seed];
+        return rgb;
+    };
+
+    function random(minR, maxR) {
+        var r = minR + (maxR - minR) * Math.random();
+        return r
+    };
+
+    function rSeed(value) {
+        var seed = Math.round(Math.random() * value);
+        return seed
+    };
+</script>
+
+<body>
+*
+</body>
+
+</html>

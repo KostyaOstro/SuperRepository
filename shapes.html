@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/three.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Staatliches" rel="stylesheet">
+</head>
+
+<body>
+    <script>
+        var w = h = 1024;
+        var time = 0;
+        var string = ["SHE'S", "DRESSED", "IN BLACK", "AGAIN"];
+        var string2 = "shflur2tyrrirolblbmb";
+        var sl = string2.length;
+        var fs = h / 10;
+        var line = [];
+        var copies = 900;
+        var points = 70;
+        var unitX = 1;
+        var unitY = 1;
+        var renderer;
+        var canvas;
+        var ctx;
+        var scene;
+        var camera;
+        window.onload = function () {
+
+            canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+
+            ctx.textAlign = "center";
+            ctx.font = fs + 'px Staatliches';
+
+
+
+
+            scene = new THREE.Scene();
+            //scene.background = new THREE.Color("red");
+            camera = new THREE.PerspectiveCamera(65, w / h, 0.01, 2000);
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(w, h);
+            //document.body.appendChild(renderer.domElement);
+            camera.position.set(0, 0, 100);
+
+            for (let i = 0; i < copies; i++) {
+                var material = new THREE.LineBasicMaterial({
+                    color: "black"
+                });
+                var lineGeometry = new THREE.Geometry();
+                for (let j = 0; j < points; j++) {
+                    var k = Math.cos(j) * unitY * 10 * Math.sin(i / copies * 10)
+                    let x = j * unitX;
+                    let y = 0;
+                    let z = 0;
+                    var vec = new THREE.Vector3(x, y, z);
+                    lineGeometry.vertices.push(vec);
+                }
+                line[i] = new THREE.Line(lineGeometry, material);
+                // line[i].position.y=i*unitY-copies*unitY/2;
+                // line[i].position.x=-copies*unitX/2;
+                line[i].rotation.z = Math.PI * 2 / copies * i;
+                scene.add(line[i]);
+            }
+
+
+
+            animate();
+
+        }
+
+
+
+
+
+        function animate() {
+            for (let i = 0; i < copies; i++) {
+                var s = Math.cos(time / 50 + i / copies * 3) * 2;;
+                line[i].scale.set(s, s, s);
+                //line[i].rotation.y=Math.cos(time/100+i/copies*3);
+                line[i].position.y = Math.sin(time / 20 + i / copies * 3) * 50;
+                line[i].position.x = Math.cos(time / 20 + i / copies * 3) * 50;
+                for (let j = 0; j < points; j++) {
+                    let x = Math.cos(time / 20 + j / points * 50 + i / copies * 30) / 10 * j / points;
+                    let y = Math.cos(time / 70 + j / points * 30 + i / copies) * 20 * j / points;
+                    let z = Math.cos(time / 10 + j / points * 10 + i / copies) / 5 * j / points;
+                    line[i].geometry.vertices[j].y = y;
+                    line[i].geometry.vertices[j].x += x;
+                    //line[i].geometry.vertices[j].z+=z;
+                    line[i].geometry.verticesNeedUpdate = true;
+                    //line[i].geometry.needsUpdate=true;
+                }
+            }
+            renderer.render(scene, camera);
+            ctx.fillStyle = "red";
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = "white";
+            var tx = Math.cos(time / 80);
+            for (let i = 0; i < string.length; i++) {
+                if (tx > 0) {
+                    ctx.fillText(
+                        string2[time % sl] + string2[time % sl],
+                        w / 2,
+                        h / 2 + fs * i - string.length / 3 * fs
+                    );
+                } else {
+                    ctx.fillText(
+                        string[i],
+                        w / 2,
+                        h / 2 + fs * i - string.length / 3 * fs
+                    )
+                    }
+
+
+                }
+
+                ctx.drawImage(renderer.domElement, 0, 0);
+                requestAnimationFrame(animate);
+                time++
+            }
+
+            function circle(r, s) {
+                var material = new THREE.LineBasicMaterial();
+                var lineGeometry = new THREE.Geometry();
+                for (let i = 0; i <= s; i++) {
+                    let angle = Math.PI * 2 / s * i;
+                    let x = Math.cos(angle) * r;
+                    let y = Math.sin(angle) * r;
+                    let z = 0;
+                    var vec = new THREE.Vector3(x, y, z);
+                    lineGeometry.vertices.push(vec);
+                }
+                var circle = new THREE.Line(lineGeometry, material);
+                return circle;
+            }
+
+            function lines(type, r, r0) {
+                var material = new THREE.LineBasicMaterial();
+                var lines = new THREE.Object3D();
+                var lineChild = [];
+                for (let j = 0; j < 4; j++) {
+                    let angle = Math.PI * 2 / 4 * j;
+                    var lineGeometry = new THREE.Geometry();
+                    switch (type) {
+                        case 0:
+                            for (let i = 0; i < 2; i++) {
+                                let x = 0;
+                                let y = r0 + r * i;
+                                let z = 0;
+                                var vec = new THREE.Vector3(x, y, z);
+                                lineGeometry.vertices.push(vec);
+                            }
+                            break;
+                        case 1:
+                            for (let i = 0; i < 3; i++) {
+                                let x = Math.cos(Math.PI / 2 * i) * r;
+                                let y = r0 + Math.sin(Math.PI / 2 * i) * r;
+                                let z = 0;
+                                var vec = new THREE.Vector3(x, y, z);
+                                lineGeometry.vertices.push(vec);
+                            }
+                            break;
+                        case 2:
+                            for (let i = 0; i < 3; i++) {
+                                let x = Math.cos(Math.PI / 2 * i + Math.PI) * r;
+                                let y = r0 + Math.sin(Math.PI / 2 * i + Math.PI) * r;
+                                let z = 0;
+                                var vec = new THREE.Vector3(x, y, z);
+                                lineGeometry.vertices.push(vec);
+                            }
+                            break;
+                    }
+
+                    lineChild[j] = new THREE.Line(lineGeometry, material);
+
+                    lineChild[j].rotation.z = angle;
+
+                    lines.add(lineChild[j]);
+                }
+                return lines
+            }
+
+            function rColor(s) {
+                var seed = Math.round(Math.random() * 4);
+                var color = [];
+                color[0] = ["#571845", "#900c3e", "#c70039", "#ff5733", "#ffc300"];
+                color[1] = ["#96ceb4", "#ffeead", "#ff6f69", "#ffcc5c", "#88d8b0"];
+                color[2] = ["#173f5f", "#20639b", "#3caea3", "#f6d55c", "#ed553b"];
+                color[3] = ["#999", "#777", "#555", "#333", "#111"];
+                color[4] = ["#ffa239", "#c8e6c9", "#81c784", "#4caf50", "#ffe789"];
+                color[5] = ["#428", "#6ca2ea", "#b5d33d", "#fed23f", "#eb7d5b"];
+                var rgb = color[s][seed];
+                return rgb;
+            };
+
+            function random(minR, maxR) {
+                var r = minR + (maxR - minR) * Math.random();
+                return r
+            };
+
+            function rSeed(value) {
+                var seed = Math.round(Math.random() * value);
+                return seed
+            };
+    </script>
+
+</body>
+
+</html>

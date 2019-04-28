@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="/javascripts/myLib.js"></script>
+    <script src="/javascripts/three.js"></script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <title>Document</title>
+    <script id='fragmentShader' type='x-shader/x-fragment'>
+        uniform sampler2D texture1;
+        uniform float time;
+        varying vec2 vUV;
+        void main() {
+            vec2 mv=vUV;
+            mv.x+=cos(mv.y*25.+time/3.)*.5*mv.y;
+            gl_FragColor = texture2D( texture1, mv );
+        }
+    </script>
+    <script id='vertexShader' type='x-shader/x-vertex'>
+        uniform float time;
+        varying vec2 vUV;
+        void main() {
+            vUV=uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.);
+        }
+    </script>
+</head>
+
+<body>
+    <script>
+        var time = 0;
+        var w = h = 1024;
+        var scene = new THREE.Scene();
+        var renderer = new THREE.WebGLRenderer({
+            alpha:true
+        });
+        renderer.setSize(w, h);
+        document.body.appendChild(renderer.domElement);
+        var camera = new THREE.PerspectiveCamera(65, w / h, 0.01, 2000);
+        camera.position.z = 100;
+
+        var geometry = new THREE.PlaneBufferGeometry(70, 70, 10, 10);
+        var material2 = new THREE.MeshBasicMaterial({
+            wireframe: true
+        });
+        var textureLoader = new THREE.TextureLoader();
+        var uniforms = {
+            time: {
+                type: 'f',
+                value: 0.
+            },
+            "texture1": {
+                value: textureLoader.load('/images/flowers/1.png')
+            },
+        }
+
+
+        var material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            fragmentShader: document.getElementById("fragmentShader").textContent,
+            vertexShader: document.getElementById("vertexShader").textContent,
+        });
+        var plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
+
+        animate()
+
+        function animate() {
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            uniforms.time.value = time;
+            time += 0.1;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/myLib.js"></script>
+</head>
+
+<body>
+    <script>
+        var canvas, ctx;
+        var time = 0;
+        var gsc;
+        var w = h = 1024;
+        var image = [];
+        var mcanvas = [];
+        var mctx = [];
+        var data = [];
+        var linecanvas = [];
+        var lctx = [];
+        var dotcanvas = [];
+        var dctx = [];
+        var sw = 100;
+        var mw = 400;
+        var scale = mw / sw;
+        var clipcanvas = [];
+        var cctx = [];
+        var clips = 10;
+        var ex = [];
+        var leaves = rSeed(20) + 10;
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+
+            var sum = 0;
+            for (let i = 0; i < 6; i++) {
+
+                mcanvas[i] = initCanvas(sw, sw);
+                mctx[i] = mcanvas[i].getContext("2d");
+
+                image[i] = new Image();
+                var index = i + 1;
+                image[i].src = "/images/flowers/" + index + ".png";
+                image[i].addEventListener('load', function () {
+                    sum++
+
+                    mctx[i].drawImage(image[i], 0, 0, 400, 400, 0, 0, sw, sw);
+                    var massive = mctx[i].getImageData(0, 0, sw, sw);
+                    data[i] = massive.data;
+                    mctx[i].fillRect(0, 0, sw, sw);
+                    mctx[i].fillStyle = "white";
+
+                    var indexx = linecanvas.length;
+
+                    linecanvas[indexx] = initCanvas(mw, mw);
+                    lctx[indexx] = linecanvas[indexx].getContext("2d");
+
+                    linecanvas[indexx + 1] = initCanvas(mw, mw);
+                    lctx[indexx + 1] = linecanvas[indexx + 1].getContext("2d");
+
+                    lctx[indexx].fillStyle = "white";
+                    lctx[indexx + 1].fillStyle = "white";
+
+                    if (rSeed(2) > 1) {
+                        var xx = random(0, mw / 2);
+                        var yy = random(0, mw / 2);
+                        var ww = random(mw / 3, mw / 2);
+                        lctx[indexx].beginPath();
+                        lctx[indexx].arc(xx, yy, ww / 2, 0, Math.PI * 2);
+                        lctx[indexx].clip()
+                    }
+                    if (rSeed(2) > 1) {
+                        var xx = random(0, mw / 2);
+                        var yy = random(0, mw / 2);
+                        var ww = random(mw / 3, mw / 2);
+
+                        lctx[indexx + 1].beginPath();
+                        lctx[indexx + 1].arc(xx, yy, ww / 2, 0, Math.PI * 2);
+                        lctx[indexx + 1].clip()
+                    }
+
+
+
+                    for (let j = 0; j < data[i].length; j += 4) {
+                        if (data[i][j + 3] > 0) {
+                            var x = j / 4 % sw;
+                            var y = Math.floor(j / 4 / sw);
+                            // mctx[i].fillRect(
+                            //     x,
+                            //     y,
+                            //     data[i][j] / 255,
+                            //     data[i][j] / 255
+                            // )
+                            if (y % 2 == 0) {
+                                lctx[indexx].fillRect(
+                                    x * scale,
+                                    y * scale + Math.cos(x / sw * 6) * scale * 10 * j / data[i].length,
+                                    scale,
+                                    (1 - data[i][j] / 255) * scale * 2
+                                )
+                            }
+                            if (y % 2 == 0 && x % 2 == 0) {
+                                lctx[indexx + 1].fillRect(
+                                    x * scale + Math.cos(y / sw * 9) * scale * 10 * j / data[i].length,
+                                    y * scale + Math.sin(x / sw * 7) * scale * 10 * j / data[i].length,
+                                    (1 - data[i][j] / 255) * scale * 2,
+                                    (1 - data[i][j] / 255) * scale * 2
+                                )
+                            }
+                        }
+                    }
+                    // for (let ii = 0; ii < clips; ii++) {
+                    //     var index = clipcanvas.length;
+                    //     var xx = random(0, mw / 2);
+                    //     var yy = random(0, mw / 2);
+                    //     var ww = random(mw / 3, mw / 2);
+
+                    //     clipcanvas[index] = initCanvas(ww, ww);
+                    //     cctx[index]= clipcanvas[index].getContext("2d");
+                    //     //cctx[index].fillRect(0,0,ww,ww)
+                    //     cctx[index].drawImage(linecanvas[i], xx, yy, ww, ww, 0, 0, ww, ww)
+                    //     index++;
+                    //     clipcanvas[index] = initCanvas(ww, ww);
+                    //     cctx[index]= clipcanvas[index].getContext("2d");
+                    //     //cctx[index].fillRect(0,0,ww,ww)
+                    //     cctx[index].drawImage(dotcanvas[i], xx, yy, ww, ww, 0, 0, ww, ww)
+                    // }
+
+
+
+                    if (sum == 6) init();
+                })
+
+            }
+
+            function init() {
+                for (let i = 0; i < leaves; i++) {
+                    ex[i] = rSeed(linecanvas.length - 1);
+                }
+                animate()
+            }
+        }
+
+        function initCanvas(mw, mh) {
+
+            icanvas = document.createElement("canvas");
+            icanvas.width = mw;
+            icanvas.height = mh;
+            //document.body.appendChild(icanvas);
+
+            return icanvas
+        }
+        var text = {
+            string: "GERBERA",
+            fs: h / 14,
+            lh: 1,
+            as: [],
+            draw() {
+                if (time == 0) {
+                    ctx.font = 'bold ' + this.fs + 'px arial';
+                    ctx.textAlign = "center";
+                    ctx.strokeStyle = "white";
+                    ctx.fillStyle = "white";
+                    var step = Math.PI * 2 / this.string.length;
+                    var sum = 0;
+                    for (let i = 0; i < this.string.length; i++) {
+                        if (i % 2 == 0) {
+                            this.as[i] = (i - 1) * step + random(step / 3, step);
+                        } else {
+                            this.as[i] = i * step;
+                        }
+                        //sum+=this.as[i]
+                        
+                }}
+                for (let i = 0; i < this.string.length; i++) {
+
+                        
+
+
+                        var angle = time / 100 + this.as[i];
+                        var x = w / 2 + Math.cos(angle) * w / 3;
+                        var y = h / 2 + Math.sin(angle) * w / 3;
+                        ctx.fillStyle = "black";
+                        ctx.beginPath();
+                        ctx.arc(x,y,this.fs*0.8,0,Math.PI*2);
+                        ctx.fill();
+
+
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate(angle + Math.PI / 2);
+                        ctx.fillStyle = "white";
+                        ctx.fillText(
+                            this.string[i],
+                            0,
+                            this.fs*0.4
+                        )
+
+
+                        ctx.restore()
+                    
+
+
+                }
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, w, h)
+            for (let i = 0; i < leaves; i++) {
+
+                ctx.save();
+                ctx.translate(w / 2, h / 2);
+                var angle = time / 200 + (Math.PI * 2 / 20 * i) + Math.cos(time / 30 + i / leaves) / 10;
+                ctx.rotate(angle);
+                ctx.drawImage(linecanvas[ex[i]], 0, 0);
+                ctx.restore();
+            }
+            text.draw();
+            requestAnimationFrame(animate);
+            time++
+        }
+    </script>
+</body>
+
+</html>

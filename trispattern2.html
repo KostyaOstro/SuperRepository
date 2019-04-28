@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Maven+Pro:900" rel="stylesheet">
+</head>
+<style>
+    * {
+        font-family: 'Maven Pro', sans-serif;
+    }
+</style>
+<script>
+    var ctx, txt;
+    var xScale = 5;
+    var ws = 100;
+    var hs = 100;
+    var w = 1200;
+    var h = 1200;
+    var time = 0;
+
+    window.onload = function () {
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        // var textCanvas = document.createElement("canvas");
+        // textCanvas.width = ws;
+        // textCanvas.height = hs;
+        // document.body.appendChild(textCanvas);
+        // txt = textCanvas.getContext("2d");
+        // txt.fillStyle=rBgColor();
+        // txt.fillRect(0,0,ws,hs);
+
+        ctx.fillRect(0,0,w,h);
+        animate();
+    };
+
+
+
+    var sides=3;
+    var depth = 0;
+    var unit = w / 27;
+    var x = [w / 2];
+    var y = [h / 2];
+    var l = 0;
+    ctx.lineWidth=0.01;
+    function draw() {
+        if (depth ==3) {
+            return
+        } else {
+            var parent=x.length-1;
+            var number = Math.pow(sides, depth);
+            for (j = 0; j < number; j++) {
+                var radius = w/8/(depth+1);
+                if (depth > 0) {
+                    var index =parent;
+
+                } else {
+                    var index = 0;
+                }
+                //console.log(index);
+                x0 = x[index - j];
+                y0 = y[index - j];
+
+                ctx.beginPath();
+                for (var i = 0; i < sides; i++) {
+
+                    var angle = Math.PI * 2 / sides * i - Math.PI / 2;
+                    x1 = Math.cos(angle) * radius + x0;
+                    y1 = Math.sin(angle) * radius + y0;
+                    if (i == 0) {
+                        ctx.moveTo(x1, y1)
+                    } else {
+                        ctx.lineTo(x1, y1)
+                    }
+                    x.push(x1);
+                    y.push(y1);
+                    l++
+                }
+                ctx.closePath();
+                var seed=Math.random()*2;
+                ctx.strokeStyle=rColor();
+                if(seed>1){
+                    ctx.stroke();// ctx.fill();
+                }else{
+                    ctx.stroke();
+                }
+                
+            }
+            depth++;
+            draw()
+
+        }
+    }
+
+
+
+
+    function animate() {
+        clear();
+        draw();
+        // window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        // ctx.fillStyle = bgcolor;
+        // ctx.fillRect(0, 0, w, h)
+        //txt.clearRect(0,0,w,h)
+    }
+
+    function rColor() {
+        var seed = Math.round(Math.random() * 6);
+        switch (seed) {
+            case 1:
+                var r = Math.round(Math.random() * 128) + 128;
+                var g = Math.round(Math.random() * 128) + 128;
+                var b = 0;
+                break;
+            case 2:
+                var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var g = Math.round(Math.random() * 128) + 128;
+                var b = Math.round(Math.random() * 128) + 128;
+            default:
+                var r = Math.round(Math.random() * 128) + 128;
+                var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var b = Math.round(Math.random() * 128) + 128;
+                break;
+        }
+        var rgb = "rgba(" + r + "," + g + "," + b + ",0.5)";
+        return rgb;
+    }
+
+    function rBgColor() {
+        var bgL = 16;
+        var seed = Math.round(Math.random() * 2);
+        switch (seed) {
+            case 1:
+                var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 32)) + 32;
+                var g = Math.round(Math.random() * bgL) + bgL;
+                var b = Math.round(Math.random() * bgL) + bgL;
+            default:
+                var r = Math.round(Math.random() * bgL) + bgL;
+                var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 32)) + 32;
+                var b = Math.round(Math.random() * bgL) + bgL;
+                break;
+        }
+        var rgb = "rgb(" + r + "," + g + "," + b + ")";
+        return rgb;
+    }
+</script>
+
+<body>
+    77
+</body>
+
+</html>

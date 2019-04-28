@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Maven+Pro:900" rel="stylesheet">
+</head>
+<style>
+    * {
+        font-family: 'Maven Pro', sans-serif;
+    }
+</style>
+<script>
+    var ctx, txt;
+    var xScale = 5;
+    var ws = 100;
+    var hs = 100;
+    var w = 1200;
+    var h = 1200;
+    var time = 0;
+    var points = 1;
+    var point = [];
+    window.onload = function () {
+        var canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext("2d");
+
+        // var textCanvas = document.createElement("canvas");
+        // textCanvas.width = ws;
+        // textCanvas.height = hs;
+        // document.body.appendChild(textCanvas);
+        // txt = textCanvas.getContext("2d");
+        // txt.fillStyle=rBgColor();
+        // txt.fillRect(0,0,ws,hs);
+
+
+        animate();
+    };
+
+
+
+    
+    var depth = 0;
+
+    function draw() {
+        if (depth > 4) {
+            return
+        } else {
+            var number = Math.pow(3,depthd);
+            for (i = 0; i < number; i++) {
+                for (j = 0; j < number; j++) {
+                    var seed = Math.round(Math.random() * 2);
+                    if (seed > 1) {
+                        var side = w / number;
+                        if (j % 2 == 0) {
+                            var padding = 0
+                        } else {
+                            var padding = side / 2
+                        }
+                        var x0 = i * side + padding;
+                        var y0 = (j + 1) * Math.sin(Math.PI / 3) * side;
+                        if (y0 <= h) {
+                            ctx.beginPath();
+                            ctx.moveTo(x0, y0);
+                            var x = Math.cos(Math.PI / 3) * side;
+                            var x2 = x * 2 + x0;
+                            if (x2 <= w) {
+                                ctx.lineTo(x2, y0);
+                                var y = Math.sin(Math.PI / 3) * side;
+                                ctx.lineTo(x + x0, y0 - y);
+                                ctx.closePath();
+                                var seed2 = Math.round(Math.random() * 2);
+                                if (seed2 > 1) {
+                                    ctx.stroke()
+                                } else {
+                                    ctx.fill()
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+            depth++
+            draw()
+        }
+    }
+
+
+    function animate() {
+        clear();
+        draw();
+        // window.requestAnimationFrame(animate);
+        time++
+    }
+
+    function clear() {
+        // ctx.fillStyle = bgcolor;
+        // ctx.fillRect(0, 0, w, h)
+        //txt.clearRect(0,0,w,h)
+    }
+
+    function rColor() {
+        var seed = Math.round(Math.random() * 6);
+        switch (seed) {
+            case 1:
+                var r = Math.round(Math.random() * 128) + 128;
+                var g = Math.round(Math.random() * 128) + 128;
+                var b = 0;
+                break;
+            case 2:
+                var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var g = Math.round(Math.random() * 128) + 128;
+                var b = Math.round(Math.random() * 128) + 128;
+            default:
+                var r = Math.round(Math.random() * 128) + 128;
+                var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 128)) + 128;
+                var b = Math.round(Math.random() * 128) + 128;
+                break;
+        }
+        var rgb = "rgba(" + r + "," + g + "," + b + ",0.5)";
+        return rgb;
+    }
+
+    function rBgColor() {
+        var bgL = 16;
+        var seed = Math.round(Math.random() * 2);
+        switch (seed) {
+            case 1:
+                var r = 0; // Math.round(Math.abs(Math.sin(Math.random()) * 32)) + 32;
+                var g = Math.round(Math.random() * bgL) + bgL;
+                var b = Math.round(Math.random() * bgL) + bgL;
+            default:
+                var r = Math.round(Math.random() * bgL) + bgL;
+                var g = 0; //Math.round(Math.abs(Math.sin(Math.random()) * 32)) + 32;
+                var b = Math.round(Math.random() * bgL) + bgL;
+                break;
+        }
+        var rgb = "rgb(" + r + "," + g + "," + b + ")";
+        return rgb;
+    }
+</script>
+
+<body>
+    77
+</body>
+
+</html>

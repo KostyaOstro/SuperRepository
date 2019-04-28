@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="/javascripts/myLib.js"></script>
+</head>
+
+<body>
+    <script>
+        var w = h = 1024;
+        var canvas, ctx;
+        var time = 0;
+        window.onload = function () {
+            canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext("2d");
+
+
+            tcomp.init();
+
+        }
+        function animate(){
+            requestAnimationFrame(animate);
+            time++
+        }
+        var tcomp = {
+            txt: 'CURIOSITY',
+            fs: h / 8,
+            ux: 6,
+            uy: 6,
+            x: [],
+            y: [],
+            init() {
+                ctx.font = "bold " + this.fs + 'px arial';
+                ctx.textAlign = "center";
+                ctx.lineWidth = this.fs / 5;
+                ctx.strokeStyle = "red";
+                let x0 = random(w / 10, w * 9 /10);
+                let y0 = random(w / 10, w * 9 /10);
+                let ml = random(w / 4, w / 2 );
+                let steps = rSeed(6) + 1;
+                ctx.beginPath();
+                for (let i = 0; i < 200; i++) {
+                    
+                    let angle = Math.PI * 2 * steps / 200 * i;
+                    let l = i / 200 * ml;
+                    let x = Math.cos(angle) * l + x0 ;
+                    let y = Math.sin(angle) * l + y0 ;
+                    
+                    if(i == 0){
+                        ctx.moveTo(x, y)
+                    } else {
+                        ctx.lineTo(x, y)
+                    }
+                }
+                ctx.stroke();
+                ctx.strokeStyle = "black";
+                let unit = w / (this.ux + 1);
+                var m;
+                for (let i = 0; i < this.ux * this.uy; i++) {
+                    ctx.lineWidth = 1;
+                    let x = i % this.ux;
+                    let y = Math.floor(i / this.uy);
+
+                    ctx.strokeRect(
+                        x * unit + unit,
+                        y * unit + unit,
+                        20,
+                        20
+                    )
+                    ctx.lineWidth = this.fs / 5;
+                    if (this.x.length < this.txt.length) {
+                        if (rSeed(4) > 2) {
+                            this.x.push(x);
+                            this.y.push(y);
+                            ctx.fillText(
+                                this.txt[this.x.length - 1],
+                                x * unit + unit,
+                                y * unit + unit + this.fs / 2.5,
+                            )
+                            if (m == y) {
+                                ctx.beginPath();
+
+                                ctx.moveTo(
+                                    this.x[this.x.length - 2] * unit + unit,
+                                    this.y[this.x.length - 2] * unit + unit
+                                );
+
+                                ctx.lineTo(
+                                    this.x[this.x.length - 1] * unit + unit,
+                                    this.y[this.x.length - 1] * unit + unit
+                                )
+
+                                ctx.stroke();
+                            }
+                            m = y;
+                        }
+                       
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
